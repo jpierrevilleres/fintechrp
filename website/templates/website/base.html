@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}My Site{% endblock %}</title>
+    <style>
+        body { 
+            font-family: system-ui, Arial, sans-serif; 
+            max-width: 1100px; 
+            margin: 2rem auto; 
+            line-height: 1.5; 
+            padding: 0 1rem;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 1rem;
+        }
+        nav a {
+            margin-right: 1rem;
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+        }
+        nav a:last-child {
+            margin-right: 0;
+        }
+        footer {
+            margin-top: 4rem;
+            padding-top: 1rem;
+            border-top: 1px solid #ccc;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        form label {
+            font-weight: 600;
+            display: block;
+            margin-top: 1rem;
+        }
+        form input, form textarea {
+            width: 100%;
+            padding: .6rem .8rem;
+            border: 1px solid #aaa;
+            border-radius: .4rem;
+            font-size: 1rem;
+        }
+        form button {
+            margin-top: 1rem;
+            padding: .7rem 1.2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            background: #222;
+            color: white;
+            border: none;
+            border-radius: .4rem;
+            cursor: pointer;
+        }
+        h1 {
+            margin-top: 0;
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+<header>
+    <div><strong>My Site</strong></div>
+    <nav>
+        <a href="{% url 'home' %}">Home</a>
+        <a href="{% url 'about' %}">About</a>
+        <a href="{% url 'contact' %}">Contact</a>
+    </nav>
+</header>
+
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<footer>
+    <p>© {{ now|default:"2025" }} My Site. All rights reserved.</p>
+</footer>
+</body>
+</html>

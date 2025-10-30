@@ -1,0 +1,9 @@
+{% extends "website/base.html" %}
+
+{% block title %}Thank you{% endblock %}
+
+{% block content %}
+<h1>Message received</h1>
+<p>Thank you for reaching out. We will contact you soon.</p>
+<p><a href="{% url 'home' %}">Return to home</a></p>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "website/base.html" %}
+
+{% block title %}{{ article.title }}{% endblock %}
+
+{% block content %}
+<article>
+    <p>
+        <small>
+            {{ article.created_at|date:"Y-m-d" }} •
+            {% if article.category == "finance" %}Finance{% endif %}
+            {% if article.category == "technology" %}Technology{% endif %}
+            {% if article.category == "real_estate" %}Real Estate{% endif %}
+        </small>
+    </p>
+
+    <h1>{{ article.title }}</h1>
+
+    <p style="font-size:1.1rem; color:#444;">
+        {{ article.summary }}
+    </p>
+
+    <div style="margin-top:2rem; white-space:pre-line; font-size:1.05rem; line-height:1.6;">
+        {{ article.body }}
+    </div>
+</article>
+
+<p style="margin-top:2rem;">
+    <a href="{% url 'article_list' %}">← Back to articles</a>
+</p>
+
+{% endblock %}

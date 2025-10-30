@@ -1,0 +1,22 @@
+# Python cache / bytecode
+__pycache__/
+*.pyc
+
+# Virtual environment
+.venv/
+
+# Local database and backups
+db.sqlite3
+db.sqlite3.bak
+*.sqlite3
+
+# Static collected files
+staticfiles/
+
+# VS Code settings
+.vscode/
+
+# Certs / keys if any
+*.pem
+*.key
+*.crt

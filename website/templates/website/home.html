@@ -1,0 +1,29 @@
+{% extends "website/base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<h1>Welcome</h1>
+<p>This is the main landing page. You can describe what your service or product is and why people should care.</p>
+
+<h2>Latest articles</h2>
+<ul>
+    {% for art in latest_articles %}
+        <li>
+            <a href="{% url 'article_detail' slug=art.slug %}"><strong>{{ art.title }}</strong></a>
+            <br>
+            <small>{{ art.created_at|date:"Y-m-d" }} • 
+                {% if art.category == "finance" %}Finance{% endif %}
+                {% if art.category == "technology" %}Technology{% endif %}
+                {% if art.category == "real_estate" %}Real Estate{% endif %}
+            </small>
+            <p>{{ art.summary|default:art.body|truncatechars:160 }}</p>
+        </li>
+    {% empty %}
+        <li>No articles yet.</li>
+    {% endfor %}
+</ul>
+
+<p><a href="{% url 'article_list' %}">View all articles →</a></p>
+
+{% endblock %}
