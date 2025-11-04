@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = env('DJANGO_SECRET_KEY', default='django-insecure-8p=l77sqg(z#49dv17pzg-+cj^e849eavvc7&1qf*e=va1@nlx')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["fintechrp.com", "www.fintechrp.com", "13.62.64.45"]
 
