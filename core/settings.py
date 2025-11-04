@@ -247,18 +247,6 @@ COMPRESS_CSS_FILTERS = [
 ]
 COMPRESS_JS_FILTERS = ['compressor.filters.jsmin.JSMinFilter']
 COMPRESS_STORAGE = 'compressor.storage.GzipCompressorFileStorage'
-=======
-from pathlib import Path
-import environ
-
-env = environ.Env()
-environ.Env.read_env()
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-
-SECRET_KEY = env('DJANGO_SECRET_KEY', default='django-insecure-key')
-DEBUG = True
-ALLOWED_HOSTS = ['fintechrp.com', 'www.fintechrp.com', '13.62.64.45']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
