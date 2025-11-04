@@ -42,9 +42,6 @@ CSRF_COOKIE_SECURE = True
 # Google Analytics
 GOOGLE_ANALYTICS_ID = 'G-5CVML1HFYR'
 
-# Django Compressor settings
-COMPRESS_ENABLED = False
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -240,7 +237,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    'compressor.finders.CompressorFinder',
 ]
 
 COMPRESS_ENABLED = True
