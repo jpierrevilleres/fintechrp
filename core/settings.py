@@ -42,6 +42,9 @@ CSRF_COOKIE_SECURE = True
 # Google Analytics
 GOOGLE_ANALYTICS_ID = 'G-5CVML1HFYR'
 
+# Django Compressor settings
+COMPRESS_ENABLED = False
+
 # Application definition
 
 INSTALLED_APPS = [
