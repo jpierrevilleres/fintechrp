@@ -1,86 +1,238 @@
+{% load static %}
+{% load compress %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}My Site{% endblock %}</title>
+    
+    <title>{% block title %}FinTechRP - Finance, Technology & Real Estate Insights{% endblock %}</title>
+    
+    {# SEO Meta Tags #}
+    <meta name="description" content="{% block meta_description %}{{ META_DESCRIPTION }}{% endblock %}">
+    <meta name="author" content="{% block meta_author %}FinTechRP{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}finance, technology, real estate, fintech, investment{% endblock %}">
+    
+    {# Open Graph / Facebook #}
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:title" content="{% block og_title %}{{ self.title }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}{{ self.meta_description }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ STATIC_URL }}img/default-social.jpg{% endblock %}">
+    
+    {# Twitter #}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ self.og_title }}">
+    <meta name="twitter:description" content="{{ self.og_description }}">
+    <meta name="twitter:image" content="{{ self.og_image }}">
+    
+    {# Favicon #}
+    <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
+    
+    {# CSS #}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    {% compress css %}
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    <link href="{% static 'css/components.css' %}" rel="stylesheet">
+    {% endcompress %}
+    
+    {% block extra_css %}{% endblock %}
     <style>
-        body { 
-            font-family: system-ui, Arial, sans-serif; 
-            max-width: 1100px; 
-            margin: 2rem auto; 
-            line-height: 1.5; 
-            padding: 0 1rem;
-        }
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 1rem;
-        }
-        nav a {
-            margin-right: 1rem;
-            text-decoration: none;
-            color: #333;
-            font-weight: 500;
-        }
-        nav a:last-child {
-            margin-right: 0;
-        }
-        footer {
-            margin-top: 4rem;
-            padding-top: 1rem;
-            border-top: 1px solid #ccc;
-            font-size: 0.9rem;
-            color: #666;
-        }
-        form label {
-            font-weight: 600;
-            display: block;
-            margin-top: 1rem;
-        }
-        form input, form textarea {
-            width: 100%;
-            padding: .6rem .8rem;
-            border: 1px solid #aaa;
-            border-radius: .4rem;
-            font-size: 1rem;
-        }
-        form button {
-            margin-top: 1rem;
-            padding: .7rem 1.2rem;
-            font-size: 1rem;
-            font-weight: 600;
-            background: #222;
-            color: white;
-            border: none;
-            border-radius: .4rem;
-            cursor: pointer;
-        }
-        h1 {
-            margin-top: 0;
-        }
+        /* Minimal inline fallbacks so pages look acceptable even if external CSS is blocked */
+        body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #2d3748; margin:0; }
+        .navbar { padding: 1rem 0; border-bottom: 1px solid #e9ecef; }
+        .navbar-brand { font-weight:700; color: #0056b3; }
+        .nav-link { color: #495057; text-decoration: none; padding: 0.5rem; display:inline-block }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 1rem; }
+        h1, h2, h3 { font-weight:700; }
+        .card { background: #fff; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+        .btn { display:inline-block; padding: 0.5rem 1rem; border-radius:6px; background:#0d6efd; color:#fff; text-decoration:none; border:none }
+        .form-control { padding:0.45rem 0.6rem; border:1px solid #ced4da; border-radius:6px; width:100%; box-sizing:border-box }
     </style>
-    {% block head %}{% endblock %}
+    
+    {# Google Analytics or similar #}
+    {% if not debug %}
+    <!-- Add your analytics code here -->
+    {% endif %}
 </head>
 <body>
-<header>
-    <div><strong>My Site</strong></div>
-    <nav>
-        <a href="{% url 'home' %}">Home</a>
-        <a href="{% url 'about' %}">About</a>
-        <a href="{% url 'contact' %}">Contact</a>
-    </nav>
-</header>
+    <header class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <strong>FinTechRP</strong>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'article_list' %}">Articles</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Categories
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="categoriesDropdown">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'article_list' %}">
+                                    <i class="bi bi-list me-2"></i> All
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            {% for code, name in ARTICLE_CATEGORIES %}
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'article_list_by_category' category_slug=code %}">
+                                    {% if code == 'finance' %}
+                                        <i class="bi bi-currency-dollar me-2 text-success"></i>
+                                    {% elif code == 'technology' %}
+                                        <i class="bi bi-laptop me-2 text-primary"></i>
+                                    {% elif code == 'real_estate' or code == 'real-estate' %}
+                                        <i class="bi bi-building me-2 text-danger"></i>
+                                    {% elif code == 'trade' %}
+                                        <i class="bi bi-building me-2 text-danger"></i>                                       
+                                    {% else %}
+                                        <i class="bi bi-tags me-2"></i>
+                                    {% endif %}
+                                    {{ name }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'about' %}">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'contact' %}">Contact</a>
+                    </li>
+                </ul>
+                
+                <form class="d-flex" method="get" action="{% url 'article_list' %}">
+                    <input class="form-control me-2" type="search" placeholder="Search articles..." name="q">
+                    <button class="btn btn-outline-primary" type="submit">Search</button>
+                </form>
+                
+                <ul class="navbar-nav ms-3">
+                    {% if user.is_staff %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'admin:index' %}">Admin Panel</a>
+                        </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://linkedin.com/company/fintechrp" target="_blank" title="Follow us on LinkedIn">
+                            <i class="bi bi-linkedin"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://twitter.com/fintechrp" target="_blank" title="Follow us on Twitter">
+                            <i class="bi bi-twitter"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://facebook.com/fintechrp" target="_blank" title="Follow us on Facebook">
+                            <i class="bi bi-facebook"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </header>
 
-<main>
-    {% block content %}{% endblock %}
-</main>
+    <main class="container py-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </main>
 
-<footer>
-    <p>© {{ now|default:"2025" }} My Site. All rights reserved.</p>
-</footer>
+    <footer class="bg-light mt-5 py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5>About FinTechRP</h5>
+                    <p>Expert insights on Finance, Technology, and Real Estate markets.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'home' %}">Home</a></li>
+                        <li><a href="{% url 'article_list' %}">Articles</a></li>
+                        <li><a href="{% url 'about' %}">About</a></li>
+                        <li><a href="{% url 'contact' %}">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Newsletter</h5>
+                    <form class="newsletter-form" method="post" action="{% url 'newsletter_signup' %}">
+                        {% csrf_token %}
+                        <div class="input-group">
+                            <input type="email" class="form-control" placeholder="Your email" name="email" required>
+                            <button class="btn btn-primary" type="submit">Subscribe</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <hr>
+            <div class="row align-items-center">
+                <div class="col-md-4">
+                    <p class="mb-0">© {% now "Y" %} FinTechRP. All rights reserved.</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <div class="social-icons">
+                        <a href="https://linkedin.com/company/fintechrp" class="text-decoration-none me-3" target="_blank" title="Follow us on LinkedIn">
+                            <i class="bi bi-linkedin fs-4"></i>
+                        </a>
+                        <a href="https://twitter.com/fintechrp" class="text-decoration-none me-3" target="_blank" title="Follow us on Twitter">
+                            <i class="bi bi-twitter fs-4"></i>
+                        </a>
+                        <a href="https://facebook.com/fintechrp" class="text-decoration-none me-3" target="_blank" title="Follow us on Facebook">
+                            <i class="bi bi-facebook fs-4"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="#" class="text-decoration-none me-2">Privacy Policy</a>
+                    <a href="#" class="text-decoration-none me-2">Terms of Service</a>
+                    <a href="#" class="text-decoration-none">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    {# JavaScript #}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% compress js %}
+    <script src="{% static 'js/main.js' %}"></script>
+    {% endcompress %}
+    
+    {% block extra_js %}{% endblock %}
+
+    {# Structured Data #}
+    {% block structured_data %}
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "FinTechRP",
+        "url": "{{ request.scheme }}://{{ request.get_host }}",
+        "logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'img/logo.png' %}",
+        "sameAs": [
+            "https://twitter.com/fintechrp",
+            "https://linkedin.com/company/fintechrp"
+        ]
+    }
+    </script>
+    {% endblock %}
 </body>
 </html>

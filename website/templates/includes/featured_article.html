@@ -1,0 +1,24 @@
+{# Add this as a template snippet in templates/includes/featured_article.html #}
+{% load html_utils %}
+
+<div class="featured-article position-relative overflow-hidden">
+    {% if article.image %}
+        <img src="{{ article.image.url }}" 
+             alt="{{ article.title }}" 
+             class="w-100 h-100 object-fit-cover position-absolute"
+             style="z-index: 0;">
+    {% endif %}
+    <div class="featured-article-content position-relative">
+        <span class="badge bg-primary mb-2">{{ article.get_category_display }}</span>
+        <h2 class="h1 mb-3">{{ article.title }}</h2>
+        <p class="lead mb-4">{{ article.body|striptags|html_unescape|truncatewords:30 }}</p>
+        <div class="d-flex align-items-center">
+            <div class="article-meta me-auto">
+                <span><i class="bi bi-calendar3"></i> {{ article.created_at|date:"M j, Y" }}</span>
+                <span><i class="bi bi-person"></i> {{ article.author.get_full_name }}</span>
+                <span><i class="bi bi-clock"></i> {{ article.read_time }} min read</span>
+            </div>
+            <a href="{{ article.get_absolute_url }}" class="btn btn-primary">Read More</a>
+        </div>
+    </div>
+</div>

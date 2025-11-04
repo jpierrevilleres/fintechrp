@@ -1,0 +1,64 @@
+{% extends "website/base.html" %}
+{% load i18n form_utils socialaccount %}
+
+{% block title %}Sign Up{% endblock %}
+
+<style>
+  /* Local test-only styles copied from app templates */
+  .account-card { max-width:700px; margin:1.5rem auto; }
+  .account-card .card-body { padding:2rem; }
+  .account-form label { display:block; font-weight:600; margin-bottom:0.35rem; }
+  .account-form .form-control { display:block; width:100%; padding:0.45rem 0.6rem; border:1px solid #ced4da; border-radius:6px; }
+  .social-login { display:flex; gap:0.5rem; margin-bottom:1rem; }
+  .social-login .btn { flex:1; }
+  .divider-text { position:relative; z-index:1; background:#fff; }
+  .divider-text + hr { margin-top:-0.75rem; border-color:#dee2e6; }
+  @media (max-width:576px){ .account-card{ margin:1rem; } .account-card .card-body{ padding:1rem; } }
+</style>
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-12">
+      <div class="card shadow-sm account-card">
+        <div class="card-body">
+          <h1 class="h2 mb-3">Sign Up</h1>
+          <p class="text-muted">Already have an account? Then please <a href="{% url 'account_login' %}">sign in</a>.</p>
+
+          <div class="social-login">
+            <a class="btn btn-outline-primary" href="#"><i class="bi bi-google"></i> Google</a>
+            <a class="btn btn-outline-dark" href="#"><i class="bi bi-github"></i> GitHub</a>
+          </div>
+
+          <form method="post" action="{% url 'account_signup' %}" class="account-form">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+
+            {% for field in form.visible_fields %}
+            <div class="mb-3">
+              <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+              {% if field.field.widget.input_type == 'checkbox' %}
+                {{ field|add_class:"form-check-input" }}
+              {% else %}
+                {{ field|add_class:"form-control" }}
+              {% endif %}
+              {% if field.help_text %}
+                <div class="form-text">{{ field.help_text }}</div>
+              {% endif %}
+              {% for error in field.errors %}
+                <div class="text-danger small">{{ error }}</div>
+              {% endfor %}
+            </div>
+            {% endfor %}
+
+            <div class="d-grid">
+              <button type="submit" class="btn btn-primary">Sign Up</button>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

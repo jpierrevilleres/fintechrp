@@ -1,29 +1,147 @@
 {% extends "website/base.html" %}
+{% load html_utils %}
 
 {% block title %}Home{% endblock %}
 
 {% block content %}
-<h1>Welcome</h1>
-<p>This is the main landing page. You can describe what your service or product is and why people should care.</p>
 
-<h2>Latest articles</h2>
-<ul>
-    {% for art in latest_articles %}
-        <li>
-            <a href="{% url 'article_detail' slug=art.slug %}"><strong>{{ art.title }}</strong></a>
-            <br>
-            <small>{{ art.created_at|date:"Y-m-d" }} • 
-                {% if art.category == "finance" %}Finance{% endif %}
-                {% if art.category == "technology" %}Technology{% endif %}
-                {% if art.category == "real_estate" %}Real Estate{% endif %}
-            </small>
-            <p>{{ art.summary|default:art.body|truncatechars:160 }}</p>
-        </li>
-    {% empty %}
-        <li>No articles yet.</li>
-    {% endfor %}
-</ul>
+<!-- Hero / Intro -->
+<section class="mb-4">
+    <h1 class="mb-2">Fintech RP</h1>
+    <p class="text-muted" style="max-width: 640px;">
+        Clear insight across finance, technology, real estate, and trade.
+        We highlight the signals that actually matter for money decisions.
+    </p>
+</section>
 
-<p><a href="{% url 'article_list' %}">View all articles →</a></p>
+<!-- Latest Articles -->
+<section class="mb-5">
+    <h2 class="h4 mb-3">Latest articles</h2>
+    <ul class="list-unstyled">
+        {% for art in latest_articles %}
+            <li class="mb-3">
+                <a href="{% url 'article_detail' slug=art.slug %}">
+                    <strong>{{ art.title }}</strong>
+                </a><br>
+                <small class="text-muted">
+                    {{ art.created_at|date:"Y-m-d" }} • {{ art.get_category_display }}
+                </small>
+                <p class="mb-0">
+                    {{ art.summary|default:art.body|striptags|html_unescape|truncatechars:160 }}
+                </p>
+            </li>
+        {% empty %}
+            <li class="text-muted">No articles yet.</li>
+        {% endfor %}
+    </ul>
+    <p class="mt-2">
+        <a href="{% url 'article_list' %}">View all articles →</a>
+    </p>
+</section>
+
+<!-- Topics section: Finance / Technology / Real Estate / Trade -->
+<section class="mb-4">
+    <h2 class="h4 mb-3">Topics</h2>
+
+    <div class="row gy-4 row-cols-1 row-cols-md-2 row-cols-lg-4">
+
+        <!-- Finance -->
+        <div class="col">
+            <div class="d-flex align-items-center mb-3">
+                <div class="rounded-circle bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center"
+                     style="width:40px;height:40px;">
+                    💰
+                </div>
+                <div class="ms-2">
+                    <div class="fw-semibold">Finance</div>
+                    <div class="text-muted small">Markets & money</div>
+                </div>
+            </div>
+            {% for art in finance_articles %}
+                <div class="mb-2">
+                    <a href="{% url 'article_detail' slug=art.slug %}" class="text-decoration-none">
+                        <strong>{{ art.title }}</strong>
+                    </a>
+                    <div class="small text-muted">{{ art.created_at|date:"Y-m-d" }}</div>
+                </div>
+            {% empty %}
+                <div class="text-muted small">No finance articles yet.</div>
+            {% endfor %}
+        </div>
+
+        <!-- Technology -->
+        <div class="col">
+            <div class="d-flex align-items-center mb-3">
+                <div class="rounded-circle bg-success bg-opacity-10 text-success fw-bold d-flex align-items-center justify-content-center"
+                     style="width:40px;height:40px;">
+                    💡
+                </div>
+                <div class="ms-2">
+                    <div class="fw-semibold">Technology</div>
+                    <div class="text-muted small">AI & infrastructure</div>
+                </div>
+            </div>
+            {% for art in technology_articles %}
+                <div class="mb-2">
+                    <a href="{% url 'article_detail' slug=art.slug %}" class="text-decoration-none">
+                        <strong>{{ art.title }}</strong>
+                    </a>
+                    <div class="small text-muted">{{ art.created_at|date:"Y-m-d" }}</div>
+                </div>
+            {% empty %}
+                <div class="text-muted small">No technology articles yet.</div>
+            {% endfor %}
+        </div>
+
+        <!-- Real Estate -->
+        <div class="col">
+            <div class="d-flex align-items-center mb-3">
+                <div class="rounded-circle bg-warning bg-opacity-10 text-warning fw-bold d-flex align-items-center justify-content-center"
+                     style="width:40px;height:40px;">
+                    🏠
+                </div>
+                <div class="ms-2">
+                    <div class="fw-semibold">Real Estate</div>
+                    <div class="text-muted small">Property & yield</div>
+                </div>
+            </div>
+            {% for art in real_estate_articles %}
+                <div class="mb-2">
+                    <a href="{% url 'article_detail' slug=art.slug %}" class="text-decoration-none">
+                        <strong>{{ art.title }}</strong>
+                    </a>
+                    <div class="small text-muted">{{ art.created_at|date:"Y-m-d" }}</div>
+                </div>
+            {% empty %}
+                <div class="text-muted small">No real estate articles yet.</div>
+            {% endfor %}
+        </div>
+
+        <!-- Trade -->
+        <div class="col">
+            <div class="d-flex align-items-center mb-3">
+                <div class="rounded-circle bg-info bg-opacity-10 text-info fw-bold d-flex align-items-center justify-content-center"
+                     style="width:40px;height:40px;">
+                    🌐
+                </div>
+                <div class="ms-2">
+                    <div class="fw-semibold">Trade</div>
+                    <div class="text-muted small">Global flows & policy</div>
+                </div>
+            </div>
+            {% for art in trade_articles %}
+                <div class="mb-2">
+                    <a href="{% url 'article_detail' slug=art.slug %}" class="text-decoration-none">
+                        <strong>{{ art.title }}</strong>
+                    </a>
+                    <div class="small text-muted">{{ art.created_at|date:"Y-m-d" }}</div>
+                </div>
+            {% empty %}
+                <div class="text-muted small">No trade articles yet.</div>
+            {% endfor %}
+        </div>
+
+    </div>
+</section>
 
 {% endblock %}

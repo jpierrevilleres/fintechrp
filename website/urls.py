@@ -6,6 +6,7 @@ urlpatterns = [
 
     path("about/", views.about, name="about"),
     path("contact/", views.contact, name="contact"),
+    path("newsletter/signup/", views.newsletter_signup, name="newsletter_signup"),
 
     # article list pages
     path("articles/", views.article_list, name="article_list"),

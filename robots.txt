@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /control-panel-72d3/
+Allow: /
+
+Sitemap: https://fintechrp.com/sitemap.xml
