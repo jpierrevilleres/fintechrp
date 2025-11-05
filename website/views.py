@@ -1,8 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse, Http404
 from django.contrib import messages
-from .models import ContactMessage, Article, Newsletter
-from .forms import ContactForm, NewsletterForm
+from .models import ContactMessage, Article, Newsletter, Comment, Like
+from .forms import ContactForm, NewsletterForm, CommentForm
 
 
 def home(request):
@@ -74,6 +74,9 @@ def newsletter_signup(request):
             return redirect(request.META.get('HTTP_REFERER', 'home'))
     return redirect('home')
 
+from django.db.models import Q
+
+
 def article_list(request, category_slug=None):
     """
     Show all published articles.
@@ -82,22 +85,37 @@ def article_list(request, category_slug=None):
     qs = Article.objects.filter(is_published=True)
     category_label = "All"
 
-    if category_slug == "finance":
-        qs = qs.filter(category="finance")
-        category_label = "Finance"
-    elif category_slug == "technology":
-        qs = qs.filter(category="technology")
-        category_label = "Technology"
-    elif category_slug == "real-estate":
-        qs = qs.filter(category="real_estate")
-        category_label = "Real Estate"
-    elif category_slug == "trade":
-        qs = qs.filter(category="trade")
-        category_label = "trade"        
+    # Search support: ?q=search+terms
+    q = request.GET.get('q')
+    if q:
+        q = q.strip()
+        if q:
+            qs = qs.filter(
+                Q(title__icontains=q)
+                | Q(summary__icontains=q)
+                | Q(body__icontains=q)
+                | Q(tags__name__icontains=q)
+            ).distinct()
+
+    # Normalize incoming category slug so both hyphen and underscore
+    # versions work (e.g. 'real-estate' or 'real_estate'). Then map
+    # to the Article.category internal value and a human-friendly label.
+    if category_slug:
+        normalized = category_slug.replace("-", "_")
+        allowed = {
+            "finance": "Finance",
+            "technology": "Technology",
+            "real_estate": "Real Estate",
+            "trade": "Trade",
+        }
+        if normalized in allowed:
+            qs = qs.filter(category=normalized)
+            category_label = allowed[normalized]
 
     return render(request, "website/article_list.html", {
         "articles": qs,
         "category_label": category_label,
+        "q": q,
     })
 
 
@@ -106,6 +124,102 @@ def article_detail(request, slug):
     Show one article by slug.
     """
     article = get_object_or_404(Article, slug=slug, is_published=True)
+    # prepare comment form and approved comments
+    comment_form = CommentForm()
+    approved_comments = article.comments.filter(is_approved=True)
+
+    # determine whether current visitor has liked this article
+    user_liked = False
+    if request.user.is_authenticated:
+        user_liked = article.likes.filter(user=request.user).exists()
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+        if ip:
+            user_liked = article.likes.filter(ip_address=ip).exists()
+
+    # compute absolute article url for share links (avoid calling methods in templates)
+    try:
+        article_url = request.build_absolute_uri(article.get_absolute_url())
+    except Exception:
+        article_url = request.build_absolute_uri()
+
     return render(request, "website/article_detail.html", {
-        "article": article
+        "article": article,
+        "comment_form": comment_form,
+        "comments": approved_comments,
+        "user_liked": user_liked,
+        "article_url": article_url,
     })
+
+
+def submit_comment(request, slug):
+    """Handle comment form POST for an article."""
+    article = get_object_or_404(Article, slug=slug, is_published=True)
+    if request.method != 'POST':
+        return redirect(article.get_absolute_url())
+    form = CommentForm(request.POST)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.article = article
+        if request.user.is_authenticated:
+            comment.user = request.user
+            # auto-approve staff comments
+            if request.user.is_staff:
+                comment.is_approved = True
+        comment.save()
+        messages.success(request, 'Thanks — your comment was submitted.' + (
+            ' It will appear once approved.' if not comment.is_approved else ''))
+    else:
+        messages.error(request, 'Please correct the errors in the comment form.')
+    return redirect(article.get_absolute_url() + '#comments')
+
+
+def toggle_like(request, slug):
+    """AJAX endpoint to toggle like for an article. Returns JSON with new count."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    article = get_object_or_404(Article, slug=slug, is_published=True)
+    user = request.user if request.user.is_authenticated else None
+    ip = request.META.get('REMOTE_ADDR')
+
+    liked = False
+    if user:
+        like = Like.objects.filter(article=article, user=user).first()
+        if like:
+            like.delete()
+            liked = False
+        else:
+            Like.objects.create(article=article, user=user)
+            liked = True
+    else:
+        # fallback to IP-based likes for anonymous users
+        like = Like.objects.filter(article=article, ip_address=ip).first()
+        if like:
+            like.delete()
+            liked = False
+        else:
+            Like.objects.create(article=article, ip_address=ip)
+            liked = True
+
+    return JsonResponse({'liked': liked, 'likes_count': article.likes.count()})
+
+# ...existing code...
+
+def policy_page(request, policy_type):
+    """
+    Render the appropriate policy template based on policy_type.
+    Accepts 'privacy', 'terms', or 'cookie'. Raises 404 for unknown types.
+    """
+    template_map = {
+        'privacy': 'website/privacy-policy.html',
+        'terms': 'website/terms-of-service.html',
+        'cookie': 'website/cookie-policy.html',
+    }
+    template = template_map.get(policy_type)
+    if not template:
+        raise Http404("Policy not found")
+    return render(request, template, {'policy_type': policy_type})
+
+# ...existing code...
+
+# test_view removed during cleanup

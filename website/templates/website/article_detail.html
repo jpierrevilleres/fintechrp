@@ -11,6 +11,7 @@
             {% if article.category == "finance" %}Finance{% endif %}
             {% if article.category == "technology" %}Technology{% endif %}
             {% if article.category == "real_estate" %}Real Estate{% endif %}
+            {% if article.category == "real_estate" %}Trade{% endif %}
         </small>
     </p>
 
@@ -20,6 +21,33 @@
         {{ article.summary|striptags|html_unescape }}
     </p>
 
+    <!-- Engagement: like + share -->
+    <div class="engagement d-flex align-items-center gap-3 my-3">
+    <button id="like-btn" class="btn {% if user_liked %}btn-primary{% else %}btn-outline-primary{% endif %}" data-url="{% url 'toggle_like' slug=article.slug %}">
+            <i class="bi bi-hand-thumbs-up me-1"></i>
+            <span id="like-label">Like</span>
+            <span id="like-count" class="ms-2">{{ article.likes_count }}</span>
+        </button>
+
+        <div class="btn-group">
+            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Share</button>
+            <ul class="dropdown-menu">
+                <li>
+                    <a class="dropdown-item" target="_blank" rel="noopener noreferrer" href="https://twitter.com/intent/tweet?text={{ article.title|urlencode }}&url={{ article_url|urlencode }}">Twitter</a>
+                </li>
+                <li>
+                    <a class="dropdown-item" target="_blank" rel="noopener noreferrer" href="https://www.facebook.com/sharer/sharer.php?u={{ article_url|urlencode }}">Facebook</a>
+                </li>
+                <li>
+                    <a class="dropdown-item" target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/shareArticle?mini=true&url={{ article_url|urlencode }}&title={{ article.title|urlencode }}">LinkedIn</a>
+                </li>
+                <li>
+                    <button class="dropdown-item" type="button" id="copy-link-btn" data-article-url="{{ article_url }}">Copy link</button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
     <div class="article-content" style="margin-top:2rem; font-size:1.05rem; line-height:1.6;">
         {{ article.body|safe }}
     </div>
@@ -28,5 +56,137 @@
 <p style="margin-top:2rem;">
     <a href="{% url 'article_list' %}">← Back to articles</a>
 </p>
+
+<!-- Comments -->
+<section id="comments" class="mt-5">
+    <h3>Comments ({{ comments.count }})</h3>
+    {% if comments %}
+        {% for c in comments %}
+        <div class="mb-3">
+            <strong>{{ c.name }}</strong>
+            <small class="text-muted ms-2">{{ c.created_at|date:"M d, Y H:i" }}</small>
+            <div class="mt-2">{{ c.body|linebreaks }}</div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p class="text-muted">No comments yet — be the first to comment.</p>
+    {% endif %}
+
+    <hr>
+    <h4>Leave a comment</h4>
+    <form method="post" action="{% url 'submit_comment' slug=article.slug %}">
+        {% csrf_token %}
+        {# Fallback: include cookie value as hidden input in case the template tag/token and cookie get out of sync on some dev setups #}
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ request.COOKIES.csrftoken }}">
+        <div class="mb-3">
+            {{ comment_form.name.label_tag }}
+            {{ comment_form.name }}
+            {{ comment_form.name.errors }}
+        </div>
+        <div class="mb-3">
+            {{ comment_form.email.label_tag }}
+            {{ comment_form.email }}
+            {{ comment_form.email.errors }}
+        </div>
+        <div class="mb-3">
+            {{ comment_form.body.label_tag }}
+            {{ comment_form.body }}
+            {{ comment_form.body.errors }}
+        </div>
+        <button class="btn btn-primary" type="submit">Submit comment</button>
+    </form>
+</section>
+
+{% block extra_js %}
+<script>
+    // helper to read CSRF cookie
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const likeBtn = document.getElementById('like-btn');
+    if (likeBtn) {
+        likeBtn.addEventListener('click', function(e){
+            const url = this.dataset.url;
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            }).then(r => r.json()).then(data => {
+                if (data.likes_count !== undefined) {
+                    document.getElementById('like-count').textContent = data.likes_count;
+                    if (data.liked) {
+                        likeBtn.classList.remove('btn-outline-primary');
+                        likeBtn.classList.add('btn-primary');
+                    } else {
+                        likeBtn.classList.remove('btn-primary');
+                        likeBtn.classList.add('btn-outline-primary');
+                    }
+                }
+            }).catch(err => console.error(err));
+        });
+    }
+
+    // Copy link handler for the "Copy link" dropdown item
+    const copyBtn = document.getElementById('copy-link-btn');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', function () {
+            const url = this.dataset.articleUrl;
+            if (!url) return;
+            // Try navigator.clipboard first
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(() => {
+                    showTransientMessage('Link copied to clipboard');
+                }).catch(() => {
+                    fallbackCopy(url);
+                });
+            } else {
+                fallbackCopy(url);
+            }
+        });
+    }
+
+    function fallbackCopy(text) {
+        // create a temporary textarea to select + copy
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+            document.execCommand('copy');
+            showTransientMessage('Link copied to clipboard');
+        } catch (e) {
+            // fallback: open the link in a new tab so user can copy manually
+            window.open(text, '_blank');
+        }
+        document.body.removeChild(ta);
+    }
+
+    function showTransientMessage(msg) {
+        const el = document.createElement('div');
+        el.className = 'alert alert-success position-fixed';
+        el.style.right = '20px';
+        el.style.bottom = '20px';
+        el.style.zIndex = 2000;
+        el.textContent = msg;
+        document.body.appendChild(el);
+        setTimeout(() => { el.classList.add('fade'); }, 10);
+        setTimeout(() => { document.body.removeChild(el); }, 2600);
+    }
+</script>
+{% endblock %}
 
 {% endblock %}

@@ -57,6 +57,13 @@ class Article(models.Model):
     class Meta:
         ordering = ["-created_at"]
 
+    def likes_count(self):
+        # returns number of likes related to this article
+        return getattr(self, 'likes', None) and self.likes.count() or 0
+
+    def get_absolute_url(self):
+        return reverse('article_detail', kwargs={'slug': self.slug})
+
 
 
 
@@ -78,6 +85,23 @@ class Comment(models.Model):
 
     def __str__(self):
         return f'Comment by {self.name} on {self.article}'
+
+
+class Like(models.Model):
+    """
+    Lightweight Like model to track article likes. Allows anonymous likes (by IP)
+    or authenticated user likes.
+    """
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='likes')
+    user = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = (('article', 'user'), ('article', 'ip_address'))
+
+    def __str__(self):
+        return f'Like for {self.article} by {self.user or self.ip_address}'
 
 
 class Newsletter(models.Model):
