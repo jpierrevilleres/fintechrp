@@ -24,20 +24,43 @@ document.addEventListener('DOMContentLoaded', function() {
             const email = newsletterForm.querySelector('input[type="email"]').value;
             
             try {
-                const response = await fetch('/newsletter/subscribe/', {
+                // use the form's action attribute so it matches Django URL conf
+                const action = newsletterForm.getAttribute('action') || '/newsletter/signup/';
+                // send as FormData so Django's request.POST is populated
+                const formData = new FormData();
+                formData.append('email', email);
+
+                const csrfToken = getCookie('csrftoken') || newsletterForm.querySelector('input[name="csrfmiddlewaretoken"]')?.value;
+                const response = await fetch(action, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
+                        'X-CSRFToken': csrfToken,
+                        'X-Requested-With': 'XMLHttpRequest'
                     },
-                    body: JSON.stringify({ email })
+                    body: formData
                 });
                 
                 if (response.ok) {
                     showAlert('success', 'Thank you for subscribing!');
                     newsletterForm.reset();
                 } else {
-                    showAlert('danger', 'Subscription failed. Please try again.');
+                    // try to read JSON errors returned by the server
+                    let data = {};
+                    try {
+                        data = await response.json();
+                    } catch (e) {
+                        // ignore parse errors
+                    }
+                    if (data && data.errors) {
+                        // show first error message available
+                        const firstField = Object.keys(data.errors)[0];
+                        const firstMsg = data.errors[firstField][0];
+                        showAlert('danger', firstMsg);
+                    } else if (data && data.message) {
+                        showAlert('danger', data.message);
+                    } else {
+                        showAlert('danger', 'Subscription failed. Please try again.');
+                    }
                 }
             } catch (error) {
                 showAlert('danger', 'An error occurred. Please try again later.');

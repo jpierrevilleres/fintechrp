@@ -27,17 +27,47 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = env('DJANGO_SECRET_KEY', default='django-insecure-8p=l77sqg(z#49dv17pzg-+cj^e849eavvc7&1qf*e=va1@nlx')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Use environment variable for DEBUG. Default to True for local development convenience.
+# Set DJANGO_DEBUG=False in production env to disable debug mode.
+DEBUG = env.bool('DJANGO_DEBUG', default=True)
 
-ALLOWED_HOSTS = ["fintechrp.com", "www.fintechrp.com", "13.62.64.45"]
+# Force DEBUG to False in production
+# if not env.bool('DEVELOPMENT', default=True):  # Change default to True for local
+#    DEBUG = False
 
-# Security Settings for production
-SECURE_SSL_REDIRECT = True
-SECURE_HSTS_SECONDS = 31536000  # 1 year
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=["127.0.0.1", "localhost", "fintechrp.com", "www.fintechrp.com", "13.62.64.45"])
+
+# Logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': 'django-error.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}
+
+SECURE_SSL_REDIRECT = False if DEBUG else True
+SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = False if DEBUG else True
+SECURE_HSTS_PRELOAD = False if DEBUG else True
+SESSION_COOKIE_SECURE = False if DEBUG else True
+CSRF_COOKIE_SECURE = False if DEBUG else True
+
+# Admin Security Settings
+ADMIN_ALLOWED_IPS = env.list('ADMIN_ALLOWED_IPS', default=['127.0.0.1', 'localhost', '84.74.115.21'])  # Add local IPs for testing
+ADMIN_URL = 'control-panel-72d3/'
+ADMIN_HONEYPOT = False  # Enable admin honeypot protection
 
 # Google Analytics
 GOOGLE_ANALYTICS_ID = 'G-5CVML1HFYR'
@@ -71,6 +101,8 @@ SITE_ID = 1
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # Restrict access to admin URL to configured IPs
+    'core.middleware.AdminIPRestrictionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -93,9 +125,9 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 # site-wide context processors from the website app
-                'website.context_processors.site_settings',
-                'website.context_processors.categories',
-                'website.context_processors.popular_tags',
+               # 'website.context_processors.site_settings',
+               # 'website.context_processors.categories',
+               # 'website.context_processors.popular_tags',
                 'website.context_processors.analytics',
             ],
         },
@@ -202,6 +234,14 @@ CACHES = {
         'LOCATION': BASE_DIR / 'django_cache',
     }
 }
+
+# Session settings
+# Session settings
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
+SESSION_COOKIE_SECURE = False if DEBUG else True  # Disable for local HTTP
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
 
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -330,12 +370,12 @@ SITE_ID = 1
 CRISPY_ALLOWED_TEMPLATE_PACKS = 'bootstrap5'
 CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
-SECURE_SSL_REDIRECT = True
-SECURE_HSTS_SECONDS = 31536000
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+# SECURE_SSL_REDIRECT = True
+# SECURE_HSTS_SECONDS = 31536000
+# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+# SECURE_HSTS_PRELOAD = True
+# SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = False if DEBUG else True  # Disable for local HTTP
 
 # Google Analytics
 GOOGLE_ANALYTICS_ID = 'G-5CVML1HFYR'

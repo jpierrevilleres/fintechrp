@@ -89,6 +89,44 @@ h1, h2, h3, h4, h5, h6 {
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
 }
 
+/* Article list UI improvements */
+.article-card { overflow: hidden; border-radius: 14px; }
+.article-card .card-body { padding: 1.25rem; }
+.article-card .card-title a { color: #1f2937; text-decoration: none; }
+.article-card .card-title a:hover { color: #0d6efd; }
+
+/* Overlay that appears on image hover */
+.card-overlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transform: translateY(100%);
+    /* removed dark overlay per user request */
+    background: none;
+    color: inherit;
+    padding: 1rem;
+    transition: transform 240ms ease, opacity 240ms ease;
+    opacity: 0;
+}
+.article-card:hover .card-overlay,
+.article-card:focus-within .card-overlay {
+    transform: translateY(0%);
+    opacity: 1;
+}
+.overlay-excerpt { margin: 0 0 0.6rem 0; font-size: 0.95rem; line-height: 1.35; color: #1f2937; }
+.overlay-row { display:flex; justify-content:flex-start; align-items:center; gap:0.5rem; }
+.overlay-meta { display:flex; gap:0.5rem; align-items:center; }
+.chip { background: rgba(0,0,0,0.06); padding: 0.25rem 0.6rem; border-radius: 999px; font-size: 0.8rem; color: #111827; }
+/* overlay CTA removed - card body contains the primary Read More CTA */
+
+/* Tag chips in card footer */
+.card-footer .badge { background: rgba(0,0,0,0.05); color: #212529; border-radius: 6px; padding: 0.35rem 0.5rem; }
+
+/* Small entrance animation for cards */
+@keyframes cardFadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+.article-card { animation: cardFadeUp 0.45s ease both; }
+
 /* Newsletter form */
 .newsletter-form {
     background: #f8f9fa;
@@ -267,4 +305,77 @@ h1, h2, h3, h4, h5, h6 {
     letter-spacing: 0.5px;
     color: #6c757d;
     margin-bottom: 0.5rem;
+}
+
+/* Footer specific styles moved from base.html for cleaner templates */
+/* Footer specific styles moved from base.html for cleaner templates */
+footer .social-icons a { color: #0d6efd; margin-right: 0.8rem; display: inline-flex; align-items: center; }
+footer .social-icons .bi { font-size: 1.35rem; }
+/* SVG icon sizing and color consistency */
+footer .social-icons svg { width: 28px; height: 28px; display: inline-block; vertical-align: middle; fill: currentColor; margin-right: 0.6rem; }
+footer .social-icons a:hover { color: #084298; transform: translateY(-2px); }
+
+/* Header social icons: match footer styles so header/footer icons look identical */
+.social-link {
+    color: #0d6efd;
+    margin-right: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px; /* reduced size for a cleaner toolbar */
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(13,110,253,0.06);
+    box-shadow: 0 2px 6px rgba(16,24,40,0.06);
+    transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+    text-decoration: none;
+}
+.social-link svg {
+    width: 14px; /* smaller glyph inside the circle */
+    height: 14px;
+    display: inline-block;
+    vertical-align: middle;
+    fill: currentColor;
+}
+.social-link:hover,
+.social-link:focus {
+    color: #084298;
+    transform: translateY(-2px) scale(1.03);
+    background: rgba(13,110,253,0.12);
+    box-shadow: 0 8px 18px rgba(13,110,253,0.10);
+    outline: none;
+}
+.social-link:focus {
+    box-shadow: 0 0 0 4px rgba(13,110,253,0.06);
+}
+@media (max-width: 767px) {
+    .social-link { width: 28px; height: 28px; margin-right: 0.45rem; }
+    .social-link svg { width: 13px; height: 13px; }
+}
+
+/* Mobile: make card overlay static (always visible) and hide duplicate card-text */
+@media (max-width: 767px) {
+    .article-card { display: flex; flex-direction: column; }
+    .article-card .position-relative { display: block; }
+    .card-overlay {
+        position: static;
+        transform: none;
+        opacity: 1;
+        background: transparent;
+        color: inherit;
+        padding: 0.75rem 0 0;
+    }
+    .overlay-excerpt { color: #495057; font-size: 0.95rem; margin-bottom: 0.5rem; }
+    .overlay-row { margin-top: 0.25rem; }
+    /* Hide the duplicated summary inside card-body on small screens */
+    .article-card .card-text { display: none; }
+    /* Keep footer chips visible and well spaced */
+    .card-footer .badge { margin-bottom: 0.5rem; }
+}
+footer h5 { font-weight: 700; margin-bottom: 0.75rem; }
+footer .newsletter-form .input-group .form-control { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+footer .newsletter-form .input-group .btn { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+footer a.text-decoration-none { color: #0d6efd; }
+@media (max-width: 767px) {
+    footer .text-md-end { text-align: left !important; margin-top: 1rem }
 }

@@ -14,4 +14,11 @@ urlpatterns = [
 
     # single article
     path("article/<slug:slug>/", views.article_detail, name="article_detail"),
+    path("article/<slug:slug>/comment/", views.submit_comment, name="submit_comment"),
+    path("article/<slug:slug>/like/", views.toggle_like, name="toggle_like"),
+    
+    # policy pages
+    path("privacy-policy/", views.policy_page, {"policy_type": "privacy"}, name="privacy_policy"),
+    path("terms-of-service/", views.policy_page, {"policy_type": "terms"}, name="terms_policy"),
+    path("cookie-policy/", views.policy_page, {"policy_type": "cookie"}, name="cookie_policy"),
 ]

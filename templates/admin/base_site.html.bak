@@ -1,0 +1,12 @@
+{% extends "admin/base.html" %}
+
+{# Backup of the minimal admin base template we used to recover admin rendering.
+   Keep this as a backup; the real file will be removed so Django will use
+   its default admin templates. #}
+{% block title %}FinTechRP Admin (backup){% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">FinTechRP</a></h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

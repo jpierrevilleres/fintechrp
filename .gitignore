@@ -13,6 +13,12 @@ db.sqlite3.bak
 # Static collected files
 staticfiles/
 
+# Local cache used by the project
+django_cache/
+
+# Environment variables file (contains secrets)
+.env
+
 # VS Code settings
 .vscode/
 
