@@ -2,14 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5CVML1HFYR"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-5CVML1HFYR');
-    </script>
+    {# Analytics removed: reverted to previous state (no gtag) #}
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -34,14 +27,12 @@
     <meta name="twitter:description" content="{{ self.og_description }}">
     <meta name="twitter:image" content="{{ self.og_image }}">
     
-    {# Favicon #}
-    <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
+    {# Favicon was added previously; reverted to previous state - no explicit SVG favicon here #}
     
     {# CSS #}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Google Fonts: keep default stack; Roboto addition removed to restore prior font setup -->
     
     <link href="{% static 'css/style.css' %}" rel="stylesheet">
     <link href="{% static 'css/components.css' %}" rel="stylesheet">
@@ -49,8 +40,8 @@
     
     {% block extra_css %}{% endblock %}
     <style>
-        /* Minimal inline fallbacks so pages look acceptable even if external CSS is blocked */
-        body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #2d3748; margin:0; }
+    /* Minimal inline fallbacks so pages look acceptable even if external CSS is blocked */
+    body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; color: #2d3748; margin:0; }
         .navbar { padding: 1rem 0; border-bottom: 1px solid #e9ecef; }
         .navbar-brand { font-weight:700; color: #0056b3; }
         .nav-link { color: #495057; text-decoration: none; padding: 0.5rem; display:inline-block }
@@ -192,20 +183,17 @@
                         <!-- Twitter -->
                         <a href="https://twitter.com/fintechrp" class="text-decoration-none" target="_blank" rel="noopener noreferrer" title="Follow us on Twitter" aria-label="Twitter">
                             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53A4.48 4.48 0 0 0 22.43 1s-2.11.99-3.35 1.36A4.48 4.48 0 0 0 12 6.48v.56A12.94 12.94 0 0 1 3 2s-4 9 5 13a13 13 0 0 1-7 2c9 5.5 20 0 20-11.5v-.5A7.72 7.72 0 0 0 23 3z" fill="currentColor"/>
-                            </svg>
+                                <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53A4.48 4.48 0 0 0 22.43 1s-2.11.99-3.35 1.36A4.48 4.48 0 0 0 12 6.48v.56A12.94 12.94 0 0 1 3 2s-4 9 5 13a13 13 0 0 1-7 2c9 5.5 20 0 20-11.5v-.5A7.72 7.72 0 0 0 23 3z" fill="currentColor"/></svg>
                         </a>
                         <!-- Facebook -->
                         <a href="https://facebook.com/fintechrp" class="text-decoration-none" target="_blank" rel="noopener noreferrer" title="Follow us on Facebook" aria-label="Facebook">
                             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                <path d="M22 12a10 10 0 1 0-11.5 9.9v-7h-2.2v-2.9h2.2V9.1c0-2.2 1.3-3.5 3.3-3.5.96 0 1.96.17 1.96.17v2.15h-1.1c-1.1 0-1.44.68-1.44 1.38v1.66h2.45l-.39 2.9h-2.06V22A10 10 0 0 0 22 12z" fill="currentColor"/>
-                            </svg>
+                                <path d="M22 12a10 10 0 1 0-11.5 9.9v-7h-2.2v-2.9h2.2V9.1c0-2.2 1.3-3.5 3.3-3.5.96 0 1.96.17 1.96.17v2.15h-1.1c-1.1 0-1.44.68-1.44 1.38v1.66h2.45l-.39 2.9h-2.06V22A10 10 0 0 0 22 12z" fill="currentColor"/></svg>
                         </a>
                         <!-- YouTube (play glyph) -->
                         <a href="https://youtube.com/@fintechrp" class="text-decoration-none" target="_blank" rel="noopener noreferrer" title="Follow us on YouTube" aria-label="YouTube">
                             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                <path d="M5 3.87v16.26L19 12 5 3.87z" fill="currentColor"/>
-                            </svg>
+                                <path d="M5 3.87v16.26L19 12 5 3.87z" fill="currentColor"/></svg>
                         </a>
                         <!-- Reddit (simple mark) -->
                         <a href="https://reddit.com/r/fintechrp" class="text-decoration-none" target="_blank" rel="noopener noreferrer" title="Follow us on Reddit" aria-label="Reddit">
@@ -220,8 +208,7 @@
                         <!-- TikTok (simplified note) -->
                         <a href="https://www.tiktok.com/@fintechrp" class="text-decoration-none" target="_blank" rel="noopener noreferrer" title="Follow us on TikTok" aria-label="TikTok">
                             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                <path d="M16 6.5v6.3a3.5 3.5 0 1 1-1.5-2.9V5.2h2.4z" fill="currentColor" />
-                            </svg>
+                                <path d="M16 6.5v6.3a3.5 3.5 0 1 1-1.5-2.9V5.2h2.4z" fill="currentColor" /></svg>
                         </a>
                     </div>
                 </div>
