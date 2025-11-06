@@ -2,22 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5CVML1HFYR"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-            /* Prevent duplicate gtag config calls which can overwrite cookie attributes */
-            if (!window.__gtagInitialized) {
-                try {
-                    gtag('js', new Date());
-                    gtag('config', 'G-5CVML1HFYR');
-                } catch (e) {
-                    console.warn('gtag initialization error', e);
-                }
-                window.__gtagInitialized = true;
-            }
-    </script>
+    {# Analytics removed: reverted to previous state (no gtag) #}
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -42,15 +27,12 @@
     <meta name="twitter:description" content="{{ self.og_description }}">
     <meta name="twitter:image" content="{{ self.og_image }}">
     
-    {# Favicon: prefer SVG (added) with a simple fallback #}
-    <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
-    <link rel="alternate icon" href="{% static 'img/favicon.svg' %}">
+    {# Favicon was added previously; reverted to previous state - no explicit SVG favicon here #}
     
     {# CSS #}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-        <!-- Load Inter + Roboto together to avoid fallback/font-access messages -->
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts: keep default stack; Roboto addition removed to restore prior font setup -->
     
     <link href="{% static 'css/style.css' %}" rel="stylesheet">
     <link href="{% static 'css/components.css' %}" rel="stylesheet">
@@ -58,8 +40,8 @@
     
     {% block extra_css %}{% endblock %}
     <style>
-        /* Minimal inline fallbacks so pages look acceptable even if external CSS is blocked */
-        body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #2d3748; margin:0; }
+    /* Minimal inline fallbacks so pages look acceptable even if external CSS is blocked */
+    body { font-family: Inter, system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif; color: #2d3748; margin:0; }
         .navbar { padding: 1rem 0; border-bottom: 1px solid #e9ecef; }
         .navbar-brand { font-weight:700; color: #0056b3; }
         .nav-link { color: #495057; text-decoration: none; padding: 0.5rem; display:inline-block }
@@ -78,3 +60,67 @@
     {% endif %}
 </head>
 <body>
+    <header class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <strong>FinTechRP</strong>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'article_list' %}">Articles</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Categories
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="categoriesDropdown">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'article_list' %}">
+                                    <i class="bi bi-list me-2"></i> All
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            {% for code, name in ARTICLE_CATEGORIES %}
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="{% url 'article_list_by_category' category_slug=code %}">
+                                    {% if code == 'finance' %}
+                                        <i class="bi bi-currency-dollar me-2 text-success"></i>
+                                    {% elif code == 'technology' %}
+                                        <i class="bi bi-laptop me-2 text-primary"></i>
+                                    {% elif code == 'real_estate' or code == 'real-estate' %}
+                                        <i class="bi bi-building me-2 text-danger"></i>
+                                    {% elif code == 'trade' %}
+                                        <i class="bi bi-globe me-2 text-warning"></i>                                       
+                                    {% else %}
+                                        <i class="bi bi-tags me-2"></i>
+                                    {% endif %}
+                                    {{ name }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'about' %}">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'contact' %}">Contact</a>
+                    </li>
+                </ul>
+                
+                <form class="d-flex" method="get" action="{% url 'article_list' %}">
+                    <input class="form-control me-2" type="search" placeholder="Search articles..." name="q">
+                    <button class="btn btn-outline-primary" type="submit">Search</button>
+                </form>
+                
+                <ul class="navbar-nav ms-3">
+                    <li class="nav-item">
+                        <a class="nav-link social-link" href="https://linkedin.com/company/fintechrp" target="_blank" rel="noopener noreferrer" title="Follow us on LinkedIn" aria-label="LinkedIn">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M19 0H5C3.895 0 3 .895 3 2v20c0 1.105.895 2 2 2h14c1.105 0 2-.895 2-2V2c0-1.105-.895-2-2-2zM8.339 20H5.667V9h2.672v11zM7 7.75c-.828 0-1.5-.672-1.5-1.5S6.172 4.75 7 4.75s1.5.672 1.5 1.5S7.828 7.75 7 7.75zM20 20h-2.667v-5.5c0-1.31-.467-2.2-1.639-2.2-.895 0-1.423.605-1.657 1.193-.085.213-.106.508-.106.804V20H10.5V9h2.56v1.52c.339-.52.951-1.267 2.309-1.267 1.68 0 2.931 1.102 2.931 3.469V20z" fill="currentColor"/></svg>
+                        </a>
+                    </li>
