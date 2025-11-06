@@ -221,7 +221,10 @@ CKEDITOR_CONFIGS = {
 # maintained CKEditor build (4.24.0 LTS) from CDN or local static files. This
 # does not change the installed package but ensures the editor loaded at runtime
 # is the LTS release. Replace the base path if you host CKEditor locally.
-CKEDITOR_BASEPATH = 'https://cdn.ckeditor.com/4.24.0/standard/'
+# Prefer using local static files in production or restricted networks to avoid
+# CDN failures / MIME issues. Ensure the full CKEditor distribution is available
+# under static/ckeditor/ckeditor/ (or update this path accordingly).
+CKEDITOR_BASEPATH = '/static/ckeditor/ckeditor/'
 
 # Crispy Forms
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
