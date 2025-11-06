@@ -159,3 +159,48 @@ h1, h2, h3, h4, h5, h6 {
 .bg-light-gradient {
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
 }
+
+/* Footer and header social icon styles (kept in sync with test/dev) */
+footer .social-icons a { color: #0d6efd; margin-right: 0.8rem; display: inline-flex; align-items: center; }
+footer .social-icons .bi { font-size: 1.35rem; }
+/* SVG icon sizing and color consistency */
+footer .social-icons svg { width: 28px; height: 28px; display: inline-block; vertical-align: middle; fill: currentColor; margin-right: 0.6rem; }
+footer .social-icons a:hover { color: #084298; transform: translateY(-2px); }
+
+/* Header social icons: match footer styles so header/footer icons look identical */
+.social-link {
+    color: #0d6efd;
+    margin-right: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px; /* reduced size for a cleaner toolbar */
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(13,110,253,0.06);
+    box-shadow: 0 2px 6px rgba(16,24,40,0.06);
+    transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+    text-decoration: none;
+}
+.social-link svg {
+    width: 14px; /* smaller glyph inside the circle */
+    height: 14px;
+    display: inline-block;
+    vertical-align: middle;
+    fill: currentColor;
+}
+.social-link:hover,
+.social-link:focus {
+    color: #084298;
+    transform: translateY(-2px) scale(1.03);
+    background: rgba(13,110,253,0.12);
+    box-shadow: 0 8px 18px rgba(13,110,253,0.10);
+    outline: none;
+}
+.social-link:focus {
+    box-shadow: 0 0 0 4px rgba(13,110,253,0.06);
+}
+@media (max-width: 767px) {
+    .social-link { width: 28px; height: 28px; margin-right: 0.45rem; }
+    .social-link svg { width: 13px; height: 13px; }
+}
