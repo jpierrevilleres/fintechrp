@@ -70,6 +70,8 @@ LOGGING = {
 SECURE_SSL_REDIRECT = False if DEBUG else True
 # Trust X-Forwarded-Proto header from ALB/CloudFront for HTTPS detection
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# Use X-Forwarded-Host header to avoid duplicate Host header issues from CloudFront/ALB
+USE_X_FORWARDED_HOST = True
 SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = False if DEBUG else True
 SECURE_HSTS_PRELOAD = False if DEBUG else True
