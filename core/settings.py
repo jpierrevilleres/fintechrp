@@ -35,7 +35,17 @@ DEBUG = env.bool('DJANGO_DEBUG', default=True)
 # if not env.bool('DEVELOPMENT', default=True):  # Change default to True for local
 #    DEBUG = False
 
-ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=["127.0.0.1", "localhost", "fintechrp.com", "www.fintechrp.com", "13.62.64.45"])
+ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=[
+    "127.0.0.1", 
+    "localhost", 
+    "fintechrp.com", 
+    "www.fintechrp.com", 
+    "13.62.64.45",
+    "fintechrp-dynamic-content-alb-263608934.eu-north-1.elb.amazonaws.com",  # ALB
+    "d21foi2wtblvh8.cloudfront.net",  # CloudFront
+    ".elb.amazonaws.com",  # Allow all ELB domains
+    ".cloudfront.net"  # Allow all CloudFront domains
+])
 
 # Logging configuration
 LOGGING = {
