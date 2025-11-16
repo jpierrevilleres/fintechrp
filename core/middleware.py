@@ -1,5 +1,23 @@
 from django.conf import settings
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponsePermanentRedirect
+
+
+class RedirectWWWMiddleware:
+    """Redirect www.fintechrp.com to fintechrp.com (canonical domain)."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        host = request.get_host().lower()
+        
+        # Redirect www to non-www
+        if host.startswith('www.'):
+            new_host = host[4:]  # Remove 'www.'
+            new_url = f"{request.scheme}://{new_host}{request.get_full_path()}"
+            return HttpResponsePermanentRedirect(new_url)
+        
+        return self.get_response(request)
 
 
 class FixDuplicateHostHeaderMiddleware:
