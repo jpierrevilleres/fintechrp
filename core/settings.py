@@ -114,8 +114,6 @@ SITE_ID = 1
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    # Redirect www to non-www (canonical domain)
-    'core.middleware.RedirectWWWMiddleware',
     # Fix duplicate Host headers from CloudFront/ALB before any other middleware processes them
     'core.middleware.FixDuplicateHostHeaderMiddleware',
     # Restrict access to admin URL to configured IPs
