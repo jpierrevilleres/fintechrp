@@ -58,6 +58,8 @@ LOGGING = {
 }
 
 SECURE_SSL_REDIRECT = False if DEBUG else True
+# Trust X-Forwarded-Proto header from ALB/CloudFront for HTTPS detection
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = False if DEBUG else True
 SECURE_HSTS_PRELOAD = False if DEBUG else True
@@ -218,12 +220,10 @@ CKEDITOR_CONFIGS = {
 }
 
 # To mitigate django-ckeditor bundled CKEditor 4.x warning, prefer serving a
-# maintained CKEditor build (4.24.0 LTS) from CDN or local static files. This
-# does not change the installed package but ensures the editor loaded at runtime
-# is the LTS release. Replace the base path if you host CKEditor locally.
-# Prefer using local static files in production or restricted networks to avoid
-# CDN failures / MIME issues. Ensure the full CKEditor distribution is available
-# under static/ckeditor/ckeditor/ (or update this path accordingly).
+# maintained CKEditor build (4.25.1-lts secure version) from local static files.
+# This does not change the installed package but ensures the editor loaded at runtime
+# is the latest secure LTS release. Ensure the full CKEditor distribution is available
+# under static/ckeditor/ckeditor/ (the deploy script handles this automatically).
 CKEDITOR_BASEPATH = '/static/ckeditor/ckeditor/'
 
 # Crispy Forms

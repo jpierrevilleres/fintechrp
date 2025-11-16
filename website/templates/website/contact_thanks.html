@@ -1,9 +1,44 @@
 {% extends "website/base.html" %}
 
-{% block title %}Thank you{% endblock %}
+{% block title %}Message Received - FintechRP{% endblock %}
 
 {% block content %}
-<h1>Message received</h1>
-<p>Thank you for reaching out. We will contact you soon.</p>
-<p><a href="{% url 'home' %}">Return to home</a></p>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="text-center">
+                <!-- Success Icon -->
+                <div class="mb-4">
+                    <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                        <i class="bi bi-check-circle-fill" style="font-size: 3rem;"></i>
+                    </div>
+                </div>
+
+                <!-- Success Message -->
+                <h1 class="display-5 fw-bold mb-3">Message Received!</h1>
+                <p class="lead text-muted mb-4">Thank you for reaching out. We will contact you soon.</p>
+
+                <!-- Info Card -->
+                <div class="card border-0 bg-light mb-4">
+                    <div class="card-body p-4">
+                        <p class="mb-0">
+                            <i class="bi bi-clock text-primary me-2"></i>
+                            <strong>Response time:</strong> We typically reply within 24-48 hours during business days.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex gap-3 justify-content-center flex-wrap">
+                    <a href="{% url 'home' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-house-fill me-2"></i>Return to Home
+                    </a>
+                    <a href="{% url 'article_list' %}" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-newspaper me-2"></i>Read Articles
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
