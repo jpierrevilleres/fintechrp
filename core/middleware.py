@@ -23,12 +23,11 @@ class RedirectWWWMiddleware:
 class FixDuplicateHostHeaderMiddleware:
     """Fix duplicate Host headers from CloudFront/ALB chain.
     
-    When CloudFront forwards requests to ALB and both add Host headers,
-    we get 'host1,host2' which violates RFC 1034/1035.
-    This middleware cleans up the Host header before Django processes it.
+    When CloudFront/ALB add duplicate headers, we get 'host1,host2' which 
+    violates RFC 1034/1035. This middleware cleans up duplicate headers.
     
-    Also ensures Django uses the correct host for redirects by preferring
-    X-Forwarded-Host over the raw Host header.
+    With USE_X_FORWARDED_HOST=True in settings, Django will automatically use 
+    X-Forwarded-Host from ALB (which contains the original viewer domain).
     """
 
     def __init__(self, get_response):
@@ -38,17 +37,12 @@ class FixDuplicateHostHeaderMiddleware:
         # Fix duplicate Host header (comma-separated values)
         http_host = request.META.get('HTTP_HOST', '')
         if ',' in http_host:
-            # Take the first host value
-            http_host = http_host.split(',')[0].strip()
-            request.META['HTTP_HOST'] = http_host
+            request.META['HTTP_HOST'] = http_host.split(',')[0].strip()
         
-        # Use X-Forwarded-Host if present (from CloudFront/ALB)
-        # This ensures redirects use the public domain, not the ALB domain
-        x_forwarded_host = request.META.get('HTTP_X_FORWARDED_HOST', '')
-        if x_forwarded_host:
-            if ',' in x_forwarded_host:
-                x_forwarded_host = x_forwarded_host.split(',')[0].strip()
-            request.META['HTTP_HOST'] = x_forwarded_host
+        # Fix duplicate X-Forwarded-Host header if present
+        x_fwd_host = request.META.get('HTTP_X_FORWARDED_HOST', '')
+        if ',' in x_fwd_host:
+            request.META['HTTP_X_FORWARDED_HOST'] = x_fwd_host.split(',')[0].strip()
         
         return self.get_response(request)
 
