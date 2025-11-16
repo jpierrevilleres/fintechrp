@@ -2,6 +2,27 @@ from django.conf import settings
 from django.http import HttpResponseForbidden
 
 
+class FixDuplicateHostHeaderMiddleware:
+    """Fix duplicate Host headers from CloudFront/ALB chain.
+    
+    When CloudFront forwards requests to ALB and both add Host headers,
+    we get 'host1,host2' which violates RFC 1034/1035.
+    This middleware cleans up the Host header before Django processes it.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Fix duplicate Host header (comma-separated values)
+        http_host = request.META.get('HTTP_HOST', '')
+        if ',' in http_host:
+            # Take the first host value (the original one from viewer/CloudFront)
+            request.META['HTTP_HOST'] = http_host.split(',')[0].strip()
+        
+        return self.get_response(request)
+
+
 class AdminIPRestrictionMiddleware:
     """Reject requests to the admin URL that don't originate from allowed IPs.
 
