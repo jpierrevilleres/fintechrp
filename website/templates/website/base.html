@@ -2,6 +2,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    {# Google Consent Mode v2 - Must load before AdSense #}
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        
+        // Default consent to denied for GDPR compliance
+        gtag('consent', 'default', {
+            'ad_storage': 'denied',
+            'ad_user_data': 'denied',
+            'ad_personalization': 'denied',
+            'analytics_storage': 'denied'
+        });
+    </script>
+    
     {# Google AdSense #}
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1944859451923609"
      crossorigin="anonymous"></script>
@@ -264,6 +278,52 @@
     
     <script src="{% static 'js/main.js' %}"></script>
     
+    {# Cookie Consent Banner #}
+    <div id="cookieConsent" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: #2d3748; color: white; padding: 20px; z-index: 9999; box-shadow: 0 -2px 10px rgba(0,0,0,0.1);">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-9">
+                    <p class="mb-2 mb-md-0"><strong>Cookie Consent</strong><br>
+                    We use cookies and similar technologies to personalize content and ads, provide social media features, and analyze our traffic. This includes using Google AdSense for advertising. By clicking "Accept All", you consent to our use of cookies. You can manage your preferences in our <a href="{% url 'cookie_policy' %}" style="color: #90cdf4; text-decoration: underline;">Cookie Policy</a>.</p>
+                </div>
+                <div class="col-md-3 text-md-end">
+                    <button onclick="acceptCookies()" class="btn btn-primary me-2">Accept All</button>
+                    <button onclick="rejectCookies()" class="btn btn-outline-light">Reject</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Check if user has already consented
+        if (!localStorage.getItem('cookieConsent')) {
+            document.getElementById('cookieConsent').style.display = 'block';
+        }
+        
+        function acceptCookies() {
+            localStorage.setItem('cookieConsent', 'accepted');
+            document.getElementById('cookieConsent').style.display = 'none';
+            // Enable analytics and ads
+            if (typeof gtag !== 'undefined') {
+                gtag('consent', 'update', {
+                    'ad_storage': 'granted',
+                    'analytics_storage': 'granted'
+                });
+            }
+        }
+        
+        function rejectCookies() {
+            localStorage.setItem('cookieConsent', 'rejected');
+            document.getElementById('cookieConsent').style.display = 'none';
+            // Disable analytics and ads
+            if (typeof gtag !== 'undefined') {
+                gtag('consent', 'update', {
+                    'ad_storage': 'denied',
+                    'analytics_storage': 'denied'
+                });
+            }
+        }
+    </script>
     
     {% block extra_js %}{% endblock %}
 

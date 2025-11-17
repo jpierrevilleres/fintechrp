@@ -1,10 +1,19 @@
 {% extends "website/base.html" %}
 {% load html_utils %}
 
-{% block title %}{{ article.title }}{% endblock %}
+{% block title %}{{ article.title }} | FinTechRP{% endblock %}
+
+{% block meta_description %}{{ article.meta_description|default:article.summary|striptags|truncatewords:30 }}{% endblock %}
+
+{% block meta_keywords %}{{ article.meta_keywords|default:"finance, technology, real estate, fintech" }}{% if article.tags.all %}, {{ article.tags.all|join:", " }}{% endif %}{% endblock %}
+
+{% block og_type %}article{% endblock %}
+{% block og_title %}{{ article.title }}{% endblock %}
+{% block og_description %}{{ article.summary|striptags|truncatewords:30 }}{% endblock %}
+{% block og_image %}{% if article.featured_image %}{{ request.scheme }}://{{ request.get_host }}{{ article.featured_image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% load static %}{% static 'img/default-social.jpg' %}{% endif %}{% endblock %}
 
 {% block content %}
-<article>
+<article itemscope itemtype="https://schema.org/Article">
     <p>
         <small>
             {{ article.created_at|date:"Y-m-d" }} •
@@ -189,4 +198,35 @@
 </script>
 {% endblock %}
 
+{% block structured_data %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "{{ article.title|escapejs }}",
+    "description": "{{ article.summary|striptags|truncatewords:30|escapejs }}",
+    "image": "{% if article.featured_image %}{{ request.scheme }}://{{ request.get_host }}{{ article.featured_image.url }}{% endif %}",
+    "datePublished": "{{ article.created_at|date:'c' }}",
+    "dateModified": "{{ article.updated_at|date:'c' }}",
+    "author": {
+        "@type": "{% if article.author %}Person{% else %}Organization{% endif %}",
+        "name": "{% if article.author %}{{ article.author.name|escapejs }}{% else %}FinTechRP{% endif %}"
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "FinTechRP",
+        "logo": {
+            "@type": "ImageObject",
+            "url": "{{ request.scheme }}://{{ request.get_host }}{% load static %}{% static 'img/logo.png' %}"
+        }
+    },
+    "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "{{ request.build_absolute_uri }}"
+    }
+}
+</script>
 {% endblock %}
+
+{% endblock %}
+
