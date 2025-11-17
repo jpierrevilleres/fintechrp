@@ -19,6 +19,7 @@ urlpatterns = [
     # SEO
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='sitemap'),
     path('robots.txt', TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
+    path('ads.txt', TemplateView.as_view(template_name="ads.txt", content_type="text/plain")),
     
     # Main app
     path("", include("website.urls")),
