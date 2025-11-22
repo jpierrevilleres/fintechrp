@@ -7,13 +7,25 @@
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         
-        // Default consent to denied for GDPR compliance
-        gtag('consent', 'default', {
-            'ad_storage': 'denied',
-            'ad_user_data': 'denied',
-            'ad_personalization': 'denied',
-            'analytics_storage': 'denied'
-        });
+        // Default consent to granted - only deny if user explicitly rejects
+        const consentStatus = localStorage.getItem('cookieConsent');
+        if (consentStatus === 'rejected') {
+            // User previously rejected - deny consent
+            gtag('consent', 'default', {
+                'ad_storage': 'denied',
+                'ad_user_data': 'denied',
+                'ad_personalization': 'denied',
+                'analytics_storage': 'denied'
+            });
+        } else {
+            // Default to granted (including first-time visitors)
+            gtag('consent', 'default', {
+                'ad_storage': 'granted',
+                'ad_user_data': 'granted',
+                'ad_personalization': 'granted',
+                'analytics_storage': 'granted'
+            });
+        }
     </script>
     
     {# Google AdSense #}
@@ -302,33 +314,35 @@
     </div>
     
     <script>
-        // Check if user has already consented
-        if (!localStorage.getItem('cookieConsent')) {
+        // Check if user has already made a choice
+        const consentStatus = localStorage.getItem('cookieConsent');
+        
+        if (!consentStatus) {
+            // No previous choice - show banner (tracking already enabled by default)
             document.getElementById('cookieConsent').style.display = 'block';
         }
+        // If accepted or rejected, consent is already set in the header
         
         function acceptCookies() {
             localStorage.setItem('cookieConsent', 'accepted');
             document.getElementById('cookieConsent').style.display = 'none';
-            // Enable analytics and ads
-            if (typeof gtag !== 'undefined') {
-                gtag('consent', 'update', {
-                    'ad_storage': 'granted',
-                    'analytics_storage': 'granted'
-                });
-            }
+            // Consent already granted by default, just confirm
         }
         
         function rejectCookies() {
             localStorage.setItem('cookieConsent', 'rejected');
             document.getElementById('cookieConsent').style.display = 'none';
-            // Disable analytics and ads
+            // Deny analytics and ads
             if (typeof gtag !== 'undefined') {
                 gtag('consent', 'update', {
                     'ad_storage': 'denied',
+                    'ad_user_data': 'denied',
+                    'ad_personalization': 'denied',
                     'analytics_storage': 'denied'
                 });
             }
+            // Reload to apply denied consent from start
+            window.location.reload();
         }
     </script>
     
