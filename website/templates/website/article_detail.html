@@ -13,6 +13,13 @@
 {% block og_image %}{% if article.featured_image %}{{ request.scheme }}://{{ request.get_host }}{{ article.featured_image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% load static %}{% static 'img/default-social.jpg' %}{% endif %}{% endblock %}
 
 {% block content %}
+<!-- Featured Image Banner -->
+{% if article.featured_image %}
+<div class="article-banner mb-4" style="margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%); max-width: 100vw;">
+    <img src="{{ article.featured_image.url }}" alt="{{ article.title }}" class="w-100" style="height: 400px; object-fit: cover; object-position: center;">
+</div>
+{% endif %}
+
 <article itemscope itemtype="https://schema.org/Article">
     <p>
         <small>
