@@ -80,30 +80,35 @@ echo -e "${YELLOW}Step 5: Collecting static files...${NC}"
 echo -e "${GREEN}✓ Static files collected${NC}"
 
 echo -e "${YELLOW}Step 5.5: Updating CKEditor to secure LTS version...${NC}"
+CKEDITOR_VERSION="4.25.2-lts"
 CKEDITOR_DIR="$PROJECT_DIR/static/ckeditor"
-if [ ! -f "$CKEDITOR_DIR/ckeditor/.version-4.25.1" ]; then
-    echo "Downloading CKEditor 4.25.1-lts (secure version)..."
+if [ ! -f "$CKEDITOR_DIR/ckeditor/.version-$CKEDITOR_VERSION" ]; then
+    echo "Downloading CKEditor $CKEDITOR_VERSION (secure version)..."
     mkdir -p "$CKEDITOR_DIR"
     cd "$CKEDITOR_DIR"
 
-    # Download CKEditor 4.25.1-lts standard package
-    wget -q https://cdn.ckeditor.com/4.25.1-lts/standard/ckeditor_4.25.1-lts_standard.zip -O ckeditor.zip
+    # Download CKEditor LTS standard package. This CDN URL has moved before
+    # (cdn.ckeditor.com -> download.cksource.com), so don't let a fetch
+    # failure here abort the whole deploy - fall back to whatever CKEditor
+    # is already in place (django-ckeditor's bundled version, or a
+    # previously downloaded LTS one) and keep going.
+    if wget -q "https://download.cksource.com/CKEditor/CKEditor/CKEditor%20${CKEDITOR_VERSION}/ckeditor_${CKEDITOR_VERSION}_standard.zip" -O ckeditor.zip; then
+        # Backup old version if exists
+        if [ -d "ckeditor" ]; then
+            mv ckeditor "ckeditor.backup.$(date +%Y%m%d_%H%M%S)"
+        fi
 
-    # Backup old version if exists
-    if [ -d "ckeditor" ]; then
-        mv ckeditor "ckeditor.backup.$(date +%Y%m%d_%H%M%S)"
+        unzip -q ckeditor.zip
+        rm ckeditor.zip
+
+        echo "$CKEDITOR_VERSION" > "ckeditor/.version-$CKEDITOR_VERSION"
+        echo -e "${GREEN}✓ CKEditor updated to $CKEDITOR_VERSION${NC}"
+    else
+        rm -f ckeditor.zip
+        echo -e "${RED}✗ Warning: CKEditor LTS download failed, keeping existing CKEditor in place${NC}"
     fi
-
-    # Extract new version
-    unzip -q ckeditor.zip
-    rm ckeditor.zip
-
-    # Mark version
-    echo "4.25.1-lts" > ckeditor/.version-4.25.1
-
-    echo -e "${GREEN}✓ CKEditor updated to 4.25.1-lts${NC}"
 else
-    echo -e "${GREEN}✓ CKEditor 4.25.1-lts already installed${NC}"
+    echo -e "${GREEN}✓ CKEditor $CKEDITOR_VERSION already installed${NC}"
 fi
 cd "$PROJECT_DIR"
 
