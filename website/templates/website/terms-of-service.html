@@ -1,8 +1,76 @@
 {% extends "website/base.html" %}
 
-{% block title %}Terms{% endblock %}
+{% block title %}Terms of Service - FintechRP{% endblock %}
 
 {% block content %}
-<h1>Terms of Service</h1>
-<p>Terms of Service content goes here.</p>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <h1 class="display-5 fw-bold mb-3">Terms of Service</h1>
+                <p class="text-muted">Last updated: November 2025</p>
+            </div>
+
+            <!-- Introduction -->
+            <div class="alert alert-info mb-5">
+                <p class="mb-0">These Terms of Service govern the use of FintechRP. By accessing the site, you agree to the terms described below.</p>
+            </div>
+
+            <!-- Use of Content -->
+            <section class="mb-5">
+                <h2 class="h4 mb-3">Use of Content</h2>
+                <p>FintechRP publishes original content. Readers are welcome to share links to articles but may not copy, reuse or republish full articles without permission. Any quoting or referencing must credit FintechRP as the source.</p>
+            </section>
+
+            <!-- User Comments -->
+            <section class="mb-5">
+                <h2 class="h4 mb-3">User Comments</h2>
+                <p>Visitors may post comments on articles. By doing so you agree to remain respectful and avoid harmful, offensive or illegal material. Comments that violate guidelines may be removed.</p>
+            </section>
+
+            <!-- No Professional Advice -->
+            <section class="mb-5">
+                <div class="card border-warning">
+                    <div class="card-body">
+                        <h2 class="h4 mb-3">No Professional Advice</h2>
+                        <p class="mb-0">The content on FintechRP is for informational and educational purposes only. It does not offer financial, legal or investment advice. Readers should consult licensed professionals before making decisions based on any information from the site.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Third Party Links -->
+            <section class="mb-5">
+                <h2 class="h4 mb-3">Third Party Links and Embeds</h2>
+                <p>The website may include links to external sites and embedded content such as videos or partner content. FintechRP is not responsible for the accuracy, policies or actions of these third parties.</p>
+            </section>
+
+            <!-- Accountability -->
+            <section class="mb-5">
+                <h2 class="h4 mb-3">Accountability</h2>
+                <p>FintechRP is not liable for any direct or indirect loss, damage or inconvenience that may result from the use of the site or reliance on its content.</p>
+            </section>
+
+            <!-- Governing Law -->
+            <section class="mb-5">
+                <h2 class="h4 mb-3">Governing Law</h2>
+                <p>These Terms of Service are governed by the laws of Switzerland. Any dispute arising from the use of this site shall be resolved under Swiss jurisdiction.</p>
+            </section>
+
+            <!-- Changes -->
+            <section class="mb-5">
+                <h2 class="h4 mb-3">Changes to the Terms</h2>
+                <p>FintechRP may update these terms from time to time. Continued use of the website means acceptance of any updates.</p>
+            </section>
+
+            <!-- Contact -->
+            <section class="text-center py-4 bg-light rounded">
+                <h2 class="h4 mb-3">Contact</h2>
+                <p class="mb-3">For any questions or concerns:</p>
+                <a href="mailto:webmaster@fintechrp.com" class="btn btn-primary me-2">Email Us</a>
+                <a href="{% url 'contact' %}" class="btn btn-outline-primary">Contact Page</a>
+            </section>
+        </div>
+    </div>
+</div>
 {% endblock %}

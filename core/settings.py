@@ -35,7 +35,16 @@ DEBUG = env.bool('DJANGO_DEBUG', default=True)
 # if not env.bool('DEVELOPMENT', default=True):  # Change default to True for local
 #    DEBUG = False
 
-ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=["127.0.0.1", "localhost", "fintechrp.com", "www.fintechrp.com", "13.62.64.45"])
+ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=[
+    "127.0.0.1", 
+    "localhost", 
+    "fintechrp.com", 
+    "www.fintechrp.com", 
+    "13.62.64.45",  # EC2 IP for direct access
+    "fintechrp-dynamic-content-alb-263608934.eu-north-1.elb.amazonaws.com",  # ALB for health checks
+    # Note: Removed wildcard patterns for better security per AWS recommendations
+    # CloudFront/ALB will use X-Forwarded-Host header instead
+])
 
 # Logging configuration
 LOGGING = {
@@ -58,6 +67,10 @@ LOGGING = {
 }
 
 SECURE_SSL_REDIRECT = False if DEBUG else True
+# Trust X-Forwarded headers from ALB/CloudFront for HTTPS and Host detection
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True  # Use X-Forwarded-Host header from ALB for correct domain
+USE_X_FORWARDED_PORT = True  # Use X-Forwarded-Port header from ALB
 SECURE_HSTS_SECONDS = 0 if DEBUG else 31536000
 SECURE_HSTS_INCLUDE_SUBDOMAINS = False if DEBUG else True
 SECURE_HSTS_PRELOAD = False if DEBUG else True
@@ -101,6 +114,8 @@ SITE_ID = 1
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    # Fix duplicate Host headers from CloudFront/ALB before any other middleware processes them
+    'core.middleware.FixDuplicateHostHeaderMiddleware',
     # Restrict access to admin URL to configured IPs
     'core.middleware.AdminIPRestrictionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -218,10 +233,11 @@ CKEDITOR_CONFIGS = {
 }
 
 # To mitigate django-ckeditor bundled CKEditor 4.x warning, prefer serving a
-# maintained CKEditor build (4.24.0 LTS) from CDN or local static files. This
-# does not change the installed package but ensures the editor loaded at runtime
-# is the LTS release. Replace the base path if you host CKEditor locally.
-CKEDITOR_BASEPATH = 'https://cdn.ckeditor.com/4.24.0/standard/'
+# maintained CKEditor build (4.25.1-lts secure version) from local static files.
+# This does not change the installed package but ensures the editor loaded at runtime
+# is the latest secure LTS release. Ensure the full CKEditor distribution is available
+# under static/ckeditor/ckeditor/ (the deploy script handles this automatically).
+CKEDITOR_BASEPATH = '/static/ckeditor/ckeditor/'
 
 # Crispy Forms
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
