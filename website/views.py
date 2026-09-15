@@ -1,8 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, Http404
 from django.contrib import messages
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
+from django.template.loader import render_to_string
 from .models import ContactMessage, Article, Newsletter, Comment, Like
 from .forms import ContactForm, NewsletterForm, CommentForm
 
@@ -61,34 +62,54 @@ def contact(request):
 
 
 def newsletter_signup(request):
-    if request.method == "POST":
-        form = NewsletterForm(request.POST)
-        if form.is_valid():
-            subscriber = form.save()
-            send_mail(
-                "Welcome to the FinTechRP newsletter",
-                (
-                    f"Hi{' ' + subscriber.name if subscriber.name else ''},\n\n"
-                    "Thanks for subscribing to FinTechRP - you'll get our latest "
-                    "articles on finance, technology, real estate and trade "
-                    "delivered straight to your inbox.\n\n"
-                    "If you didn't sign up for this, you can ignore this email.\n\n"
-                    "- The FinTechRP team"
-                ),
-                settings.DEFAULT_FROM_EMAIL,
-                [subscriber.email],
-                fail_silently=True,
-            )
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'status': 'success', 'message': 'Thank you for subscribing!'})
-            messages.success(request, 'Thank you for subscribing to our newsletter!')
-            return redirect(request.META.get('HTTP_REFERER', 'home'))
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+    def respond(status, message, http_status=200):
+        if is_ajax:
+            return JsonResponse({'status': status, 'message': message}, status=http_status)
+        if status == 'success':
+            messages.success(request, message)
         else:
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'status': 'error', 'errors': form.errors})
-            messages.error(request, 'Please correct the errors below.')
-            return redirect(request.META.get('HTTP_REFERER', 'home'))
-    return redirect('home')
+            messages.error(request, message)
+        return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+    if request.method != "POST":
+        return redirect('home')
+
+    email = (request.POST.get('email') or '').strip()
+
+    # Handle the common case (re-submitting an email that's already
+    # subscribed) with a friendly message instead of a raw ModelForm
+    # "already exists" validation error.
+    if email and Newsletter.objects.filter(email__iexact=email, is_active=True).exists():
+        return respond('success', "You're already subscribed - thanks for being here!")
+
+    form = NewsletterForm(request.POST)
+    if not form.is_valid():
+        first_error = next(iter(form.errors.values()))[0]
+        return respond('error', first_error, http_status=400)
+
+    subscriber = form.save()
+    email_context = {
+        'subscriber': subscriber,
+        'site_url': f"{request.scheme}://{request.get_host()}",
+    }
+    try:
+        text_body = render_to_string('emails/newsletter_welcome.txt', email_context)
+        html_body = render_to_string('emails/newsletter_welcome.html', email_context)
+        email = EmailMultiAlternatives(
+            subject="Welcome to the FinTechRP newsletter",
+            body=text_body,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[subscriber.email],
+        )
+        email.attach_alternative(html_body, "text/html")
+        email.send(fail_silently=True)
+    except Exception:
+        # A broken email template should never turn a successful
+        # subscription into a 500 - the subscriber is already saved.
+        pass
+    return respond('success', 'Thank you for subscribing to our newsletter!')
 
 from django.db.models import Q
 

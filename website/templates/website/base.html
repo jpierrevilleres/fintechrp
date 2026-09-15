@@ -276,10 +276,11 @@
                     <p class="small text-muted">Get the latest articles and insights delivered to your inbox.</p>
                     <form action="{% url 'newsletter_signup' %}" method="post" class="newsletter-form" id="newsletterForm">
                         {% csrf_token %}
-                        <div class="input-group mb-3">
+                        <div class="input-group mb-2">
                             <input type="email" name="email" class="form-control" placeholder="Your email" required>
                             <button class="btn btn-primary" type="submit">Subscribe</button>
                         </div>
+                        <div id="newsletterFeedback" class="small" role="status" aria-live="polite"></div>
                     </form>
                 </div>
             </div>

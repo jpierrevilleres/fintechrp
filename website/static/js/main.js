@@ -69,3 +69,45 @@ document.addEventListener('DOMContentLoaded', function () {
         syncIcon();
     });
 });
+
+// Newsletter signup: submit via fetch so feedback shows right at the
+// form instead of a full page reload/redirect (which, combined with
+// Django's messages framework, was showing "Please correct the errors
+// below" on whatever page the visitor navigated to next - not
+// necessarily the page they submitted from).
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('newsletterForm');
+    const feedback = document.getElementById('newsletterFeedback');
+    if (!form || !feedback) return;
+
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        feedback.textContent = '';
+        feedback.classList.remove('text-danger', 'text-success');
+
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+
+        fetch(form.action, {
+            method: 'POST',
+            body: new FormData(form),
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        })
+            .then(function (r) { return r.json().then(function (data) { return { ok: r.ok, data: data }; }); })
+            .then(function (result) {
+                const isSuccess = result.data.status === 'success';
+                feedback.textContent = result.data.message;
+                feedback.classList.add(isSuccess ? 'text-success' : 'text-danger');
+                if (isSuccess) {
+                    form.reset();
+                }
+            })
+            .catch(function () {
+                feedback.textContent = 'Something went wrong - please try again.';
+                feedback.classList.add('text-danger');
+            })
+            .finally(function () {
+                submitBtn.disabled = false;
+            });
+    });
+});

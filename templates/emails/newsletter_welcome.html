@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Welcome to FinTechRP</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f4f5f7; font-family:-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f5f7; padding:32px 0;">
+  <tr>
+    <td align="center">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px; background-color:#ffffff; border-radius:12px; overflow:hidden;">
+        <tr>
+          <td style="background-color:#0d6efd; padding:28px 32px; text-align:center;">
+            <span style="color:#ffffff; font-size:22px; font-weight:700;">FinTechRP</span>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:32px;">
+            <h1 style="margin:0 0 16px; font-size:22px; color:#212529;">
+              Hi{% if subscriber.name %} {{ subscriber.name }}{% endif %}, welcome aboard 👋
+            </h1>
+            <p style="margin:0 0 20px; font-size:15px; line-height:1.6; color:#495057;">
+              Thanks for subscribing to FinTechRP. You'll now get our latest coverage
+              across finance, technology, real estate, and trade &mdash; clear analysis
+              on the signals that actually matter, without the jargon.
+            </p>
+
+            <p style="margin:0 0 8px; font-size:15px; font-weight:600; color:#212529;">Here's what to expect:</p>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+              <tr>
+                <td style="padding:6px 0; font-size:14px; color:#495057;">💰 <strong>Finance</strong> &mdash; markets, rates, and where money is actually moving</td>
+              </tr>
+              <tr>
+                <td style="padding:6px 0; font-size:14px; color:#495057;">💡 <strong>Technology</strong> &mdash; the infrastructure and tools reshaping how business works</td>
+              </tr>
+              <tr>
+                <td style="padding:6px 0; font-size:14px; color:#495057;">🏠 <strong>Real Estate</strong> &mdash; property markets and yield trends worth watching</td>
+              </tr>
+              <tr>
+                <td style="padding:6px 0; font-size:14px; color:#495057;">🌐 <strong>Trade</strong> &mdash; global flows, policy shifts, and what they mean for you</td>
+              </tr>
+            </table>
+
+            <table role="presentation" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="border-radius:8px; background-color:#0d6efd;">
+                  <a href="{{ site_url }}{% url 'article_list' %}" style="display:inline-block; padding:12px 24px; font-size:15px; font-weight:600; color:#ffffff; text-decoration:none;">
+                    Read the latest articles
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:20px 32px; background-color:#f8f9fa; border-top:1px solid #e9ecef;">
+            <p style="margin:0; font-size:12px; color:#868e96; line-height:1.6;">
+              You're receiving this because you subscribed at
+              <a href="{{ site_url }}" style="color:#868e96;">fintechrp.com</a>.
+              If this wasn't you, just ignore this email &mdash; no further messages will be sent unless you sign up again.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,22 @@
+Hi{% if subscriber.name %} {{ subscriber.name }}{% endif %},
+
+Thanks for subscribing to FinTechRP.
+
+You'll now get our latest coverage across finance, technology, real
+estate, and trade - clear analysis on the signals that actually
+matter, without the jargon.
+
+Here's what to expect in your inbox:
+
+  - Finance: markets, rates, and where money is actually moving
+  - Technology: the infrastructure and tools reshaping how business works
+  - Real Estate: property markets and yield trends worth watching
+  - Trade: global flows, policy shifts, and what they mean for you
+
+In the meantime, check out our latest articles:
+{{ site_url }}{% url 'article_list' %}
+
+If you didn't sign up for this, you can safely ignore this email.
+
+- The FinTechRP Team
+{{ site_url }}
