@@ -122,7 +122,7 @@
 
     <!-- Featured Article (first article) -->
     {% with featured_article=articles|first %}
-    {% if featured_article and category_label == 'All' %}
+    {% if featured_article and category_label == 'All' and not q %}
     <div class="featured-article rounded overflow-hidden shadow mb-5">
         {% if featured_article.featured_image %}
         <img src="{{ featured_article.featured_image.url }}" alt="{{ featured_article.title }}" class="w-100" style="height: 400px; object-fit: cover;" fetchpriority="high">
@@ -142,7 +142,7 @@
     <!-- Articles Grid -->
     <div class="row g-4">
         {% for art in articles %}
-        {% if not forloop.first or category_label != 'All' %}
+        {% if not forloop.first or category_label != 'All' or q %}
         <div class="col-md-6 col-lg-4">
             <article class="card article-card shadow-sm">
                 <div class="position-relative">
