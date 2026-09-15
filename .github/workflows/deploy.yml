@@ -24,12 +24,4 @@ jobs:
           DEPLOY_USER: ubuntu
           DEPLOY_PATH: /home/ubuntu/fintechrp
         run: |
-          ssh $DEPLOY_USER@$DEPLOY_HOST "cd $DEPLOY_PATH && \
-          git pull && \
-          source .venv/bin/activate && \
-          pip install -r requirements.txt && \
-          python manage.py migrate --noinput && \
-          python manage.py collectstatic --noinput && \
-          sudo systemctl daemon-reload && \
-          sudo systemctl restart gunicorn && \
-          sudo systemctl restart nginx"
+          ssh $DEPLOY_USER@$DEPLOY_HOST "cd $DEPLOY_PATH && DEPLOY_BRANCH=main bash scripts/deploy.sh"
