@@ -94,9 +94,11 @@
         {% csrf_token %}
         {# Fallback: include cookie value as hidden input in case the template tag/token and cookie get out of sync on some dev setups #}
         <input type="hidden" name="csrfmiddlewaretoken" value="{{ request.COOKIES.csrftoken }}">
-        {# Honeypot: hidden from real visitors off-screen (not display:none,
-           which some bots detect and skip), left empty by them but often
-           filled in by bots that blindly fill every field. #}
+        {% comment %}
+        Honeypot: hidden from real visitors off-screen (not display:none,
+        which some bots detect and skip), left empty by them but often
+        filled in by bots that blindly fill every field.
+        {% endcomment %}
         <div style="position:absolute; left:-9999px; top:-9999px;" aria-hidden="true">
             <label for="{{ comment_form.website.id_for_label }}">Website</label>
             {{ comment_form.website }}

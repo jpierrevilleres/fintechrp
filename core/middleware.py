@@ -75,3 +75,26 @@ class AdminIPRestrictionMiddleware:
                 return HttpResponseForbidden('Access to admin is restricted')
 
         return self.get_response(request)
+
+
+class NoStoreCacheMiddleware:
+    """Mark every Django-rendered response as not cacheable.
+
+    This is a dynamic site (per-session CSRF tokens, messages framework,
+    search/filter results driven by query strings) - CloudFront was
+    observed caching /articles/ and replaying that single cached copy
+    for every ?q= search variation, since its cache policy ignores query
+    strings when building the cache key. This doesn't fix that cache
+    policy (needs an AWS console change), but it's the correct signal to
+    send regardless, and helps if the policy is ever set to respect
+    origin cache headers. Static assets are unaffected - nginx serves
+    /static/ and /media/ directly, never reaching this middleware.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        response['Cache-Control'] = 'no-store'
+        return response
