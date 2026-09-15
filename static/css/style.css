@@ -12,6 +12,10 @@ h1, h2, h3, h4, h5, h6 {
     margin-bottom: 1rem;
 }
 
+.article-summary {
+    color: #444;
+}
+
 /* Hero heading (used on homepage and category pages) */
 .display-title {
     font-size: 2.75rem;
@@ -296,50 +300,64 @@ h1, h2, h3, h4, h5, h6 {
     margin-bottom: 0.5rem;
 }
 
-/* Footer specific styles moved from base.html for cleaner templates */
-/* Footer specific styles moved from base.html for cleaner templates */
-footer .social-icons a { color: #0d6efd; margin-right: 0.8rem; display: inline-flex; align-items: center; }
-footer .social-icons .bi { font-size: 1.35rem; }
-/* SVG icon sizing and color consistency */
-footer .social-icons svg { width: 28px; height: 28px; display: inline-block; vertical-align: middle; fill: currentColor; margin-right: 0.6rem; }
-footer .social-icons a:hover { color: #084298; transform: translateY(-2px); }
+/* Footer social icons */
+footer .social-icons a {
+    color: #0d6efd;
+    margin-right: 0.6rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(13,110,253,0.08);
+    transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+footer .social-icons .bi { font-size: 1.15rem; }
+footer .social-icons a:hover { color: #fff; background: #0d6efd; transform: translateY(-2px); }
 
 /* Header social icons: match footer styles so header/footer icons look identical */
 .social-link {
     color: #0d6efd;
-    margin-right: 0.5rem;
+    margin-right: 0.4rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 30px; /* reduced size for a cleaner toolbar */
-    height: 30px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     background: rgba(13,110,253,0.06);
     box-shadow: 0 2px 6px rgba(16,24,40,0.06);
     transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
     text-decoration: none;
 }
-.social-link svg {
-    width: 14px; /* smaller glyph inside the circle */
-    height: 14px;
-    display: inline-block;
-    vertical-align: middle;
-    fill: currentColor;
+.social-link .bi {
+    font-size: 1rem;
 }
 .social-link:hover,
 .social-link:focus {
-    color: #084298;
-    transform: translateY(-2px) scale(1.03);
-    background: rgba(13,110,253,0.12);
-    box-shadow: 0 8px 18px rgba(13,110,253,0.10);
+    color: #fff;
+    background: #0d6efd;
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 8px 18px rgba(13,110,253,0.25);
     outline: none;
 }
 .social-link:focus {
-    box-shadow: 0 0 0 4px rgba(13,110,253,0.06);
+    box-shadow: 0 0 0 4px rgba(13,110,253,0.15);
 }
+
+.theme-toggle-btn {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
 @media (max-width: 767px) {
-    .social-link { width: 28px; height: 28px; margin-right: 0.45rem; }
-    .social-link svg { width: 13px; height: 13px; }
+    .social-link { width: 30px; height: 30px; margin-right: 0.3rem; }
+    .social-link .bi { font-size: 0.9rem; }
 }
 
 @media (max-width: 767px) {
@@ -353,4 +371,78 @@ footer .newsletter-form .input-group .btn { border-top-left-radius: 0; border-bo
 footer a.text-decoration-none { color: #0d6efd; }
 @media (max-width: 767px) {
     footer .text-md-end { text-align: left !important; margin-top: 1rem }
+}
+
+/* ==========================================================================
+   Dark mode overrides.
+   Bootstrap 5.3's own components (navbar, buttons, forms, dropdowns...)
+   already respond to [data-bs-theme="dark"] on their own via CSS variables.
+   These overrides are only for our custom classes and the static utility
+   classes (.bg-white/.bg-light/.text-dark/.text-muted) that Bootstrap does
+   NOT re-theme automatically.
+   ========================================================================== */
+[data-bs-theme="dark"] body {
+    color: var(--bs-body-color);
+}
+
+[data-bs-theme="dark"] .navbar.bg-white,
+[data-bs-theme="dark"] footer.bg-light {
+    background-color: var(--bs-body-bg) !important;
+}
+[data-bs-theme="dark"] .navbar {
+    border-bottom-color: var(--bs-border-color) !important;
+}
+[data-bs-theme="dark"] .nav-link {
+    color: var(--bs-body-color) !important;
+}
+[data-bs-theme="dark"] .nav-link:hover,
+[data-bs-theme="dark"] .nav-link:focus {
+    color: var(--bs-primary) !important;
+}
+
+[data-bs-theme="dark"] .text-dark {
+    color: var(--bs-body-color) !important;
+}
+[data-bs-theme="dark"] .text-muted {
+    color: var(--bs-secondary-color) !important;
+}
+
+[data-bs-theme="dark"] .article-card,
+[data-bs-theme="dark"] .card {
+    background-color: var(--bs-tertiary-bg);
+    color: var(--bs-body-color);
+}
+[data-bs-theme="dark"] .article-card .card-title a {
+    color: var(--bs-body-color);
+}
+[data-bs-theme="dark"] .article-summary {
+    color: var(--bs-secondary-color);
+}
+[data-bs-theme="dark"] .category-badge {
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+}
+
+[data-bs-theme="dark"] .newsletter-form,
+[data-bs-theme="dark"] .author-card,
+[data-bs-theme="dark"] .table-of-contents,
+[data-bs-theme="dark"] .related-articles {
+    background-color: var(--bs-tertiary-bg);
+}
+[data-bs-theme="dark"] .sponsor-section {
+    background-color: var(--bs-tertiary-bg);
+    border-color: var(--bs-border-color);
+}
+[data-bs-theme="dark"] .tag,
+[data-bs-theme="dark"] .card-footer .badge {
+    background-color: var(--bs-secondary-bg);
+    color: var(--bs-body-color);
+}
+[data-bs-theme="dark"] .comment {
+    border-left-color: var(--bs-border-color);
+}
+
+[data-bs-theme="dark"] .social-link,
+[data-bs-theme="dark"] footer .social-icons a {
+    background-color: var(--bs-tertiary-bg);
 }
