@@ -274,7 +274,11 @@ EMAIL_PORT = env.int('EMAIL_PORT', default=587)
 EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
 EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
-DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='noreply@fintechrp.com')
+# Gmail SMTP requires (or silently rewrites) the From address to match
+# the authenticated account, so this needs to be the same mailbox as
+# EMAIL_HOST_USER, not an arbitrary noreply@ alias that isn't actually
+# configured as a Workspace send-as address.
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='webmaster@fintechrp.com')
 
 # Authentication settings
 AUTHENTICATION_BACKENDS = [
