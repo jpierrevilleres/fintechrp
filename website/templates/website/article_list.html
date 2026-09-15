@@ -5,84 +5,6 @@
 
 {% block meta_description %}Browse our latest {{ category_label|lower }} articles and insights about finance, technology, real estate, and trade.{% endblock %}
 
-<!-- content block moved down so there's only one 'content' block in this template -->
-    <h1 class="mb-4">{{ category_label }} Articles</h1>
-    
-    {# Category Filter #}
-    <div class="mb-4 category-filter">
-        <a href="{% url 'article_list' %}" class="btn {% if not category_label or category_label == 'All' %}btn-primary{% else %}btn-outline-primary{% endif %} me-2 mb-2">All</a>
-        
-        <a href="{% url 'article_list_by_category' category_slug='finance' %}" 
-           class="btn {% if category_label == 'Finance' %}btn-primary{% else %}btn-outline-primary{% endif %} me-2 mb-2">
-            <i class="bi bi-currency-dollar me-1"></i> Finance
-        </a>
-        
-        <a href="{% url 'article_list_by_category' category_slug='technology' %}"
-           class="btn {% if category_label == 'Technology' %}btn-primary{% else %}btn-outline-primary{% endif %} me-2 mb-2">
-            <i class="bi bi-laptop me-1"></i> Technology
-        </a>
-        
-        <a href="{% url 'article_list_by_category' category_slug='real-estate' %}"
-           class="btn {% if category_label == 'Real Estate' %}btn-primary{% else %}btn-outline-primary{% endif %} me-2 mb-2">
-            <i class="bi bi-building me-1"></i> Real Estate
-        </a>
-        
-        <a href="{% url 'article_list_by_category' category_slug='trade' %}"
-           class="btn {% if category_label == 'Trade' %}btn-primary{% else %}btn-outline-primary{% endif %} me-2 mb-2">
-            <i class="bi bi-globe me-1"></i> Trade
-        </a>
-    </div>
-
-    {% if articles %}
-        <div class="row g-4">
-            {% for article in articles %}
-            <div class="col-md-6 col-lg-4">
-                <article class="article-card card">
-                    {% if article.image %}
-                    <div class="position-relative overflow-hidden">
-                        <img src="{{ article.image.url }}" class="card-img-top" alt="{{ article.title }}">
-                        <span class="category-badge">
-                            {% if article.category == 'finance' %}
-                                <i class="bi bi-currency-dollar text-success"></i>
-                            {% elif article.category == 'technology' %}
-                                <i class="bi bi-laptop text-primary"></i>
-                            {% elif article.category == 'real_estate' %}
-                                <i class="bi bi-building text-danger"></i>
-                            {% elif article.category == 'trade' %}
-                                <i class="bi bi-globe text-warning"></i>
-                            {% endif %}
-                            {{ article.get_category_display }}
-                        </span>
-                    </div>
-                    {% endif %}
-                    
-                    <div class="card-body">
-                        <h2 class="card-title">
-                            <a href="{{ article.get_absolute_url }}" class="text-decoration-none text-dark">
-                                {{ article.title }}
-                            </a>
-                        </h2>
-                        
-                        <p class="card-text text-muted">
-                            {{ article.summary|truncatewords:30 }}
-                        </p>
-                        
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <small class="text-muted">
-                                {{ article.created_at|date:"M d, Y" }}
-                            </small>
-                            <a href="{{ article.get_absolute_url }}" class="btn btn-outline-primary btn-sm">Read More</a>
-                        </div>
-                    </div>
-                </article>
-            </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <p class="text-center text-muted my-5">No articles found in this category.</p>
-    {% endif %}
-</div>
-
 {% block extra_css %}
 <style>
     .article-card {
@@ -227,9 +149,8 @@
                     {% if art.featured_image %}
                     <img src="{{ art.featured_image.url }}" class="card-img-top" alt="{{ art.title }}" loading="lazy" decoding="async">
                     {% else %}
-                    {% with forloop.counter|add:"-1"|divisibleby:"3" as image_index %}
-                    <img src="{% static 'img/'|add:art.category|add:'-'|add:image_index|add:'.jpg' %}" class="card-img-top" alt="{{ art.title }}" loading="lazy" decoding="async">
-                    {% endwith %}
+                    {% fallback_image_path art.category forloop.counter as fallback_path %}
+                    <img src="{% static fallback_path %}" class="card-img-top" alt="{{ art.title }}" loading="lazy" decoding="async">
                     {% endif %}
                     <span class="category-badge badge {% if art.category == 'finance' %}bg-success{% elif art.category == 'technology' %}bg-primary{% else %}bg-danger{% endif %}">
                         {{ art.get_category_display }}

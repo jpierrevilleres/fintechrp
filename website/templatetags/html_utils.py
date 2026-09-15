@@ -43,3 +43,30 @@ def lazy_images(value):
         ))
     except Exception:
         return mark_safe(value)
+
+
+# Maps an article's category value to the filename prefix used by the
+# placeholder images in static/img/. "trade" has no dedicated placeholder
+# set yet (only finance/technology/real-estate exist) - falls back to
+# finance's until real trade placeholder images are added.
+_FALLBACK_IMAGE_SLUGS = {
+    'finance': 'finance',
+    'technology': 'technology',
+    'real_estate': 'real-estate',
+    'trade': 'finance',
+}
+
+
+@register.simple_tag
+def fallback_image_path(category, index):
+    """Static path for a category placeholder thumbnail, for articles
+    with no featured_image. `index` cycles through 1-3 regardless of the
+    caller's counter value (previously this used |divisibleby, which
+    returns a bool, not a number, silently breaking the image path).
+    """
+    slug = _FALLBACK_IMAGE_SLUGS.get(category, 'finance')
+    try:
+        n = (int(index) - 1) % 3 + 1
+    except (TypeError, ValueError):
+        n = 1
+    return f'img/{slug}-{n}.jpg'
