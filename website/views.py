@@ -158,6 +158,11 @@ def submit_comment(request, slug):
     if request.method != 'POST':
         return redirect(article.get_absolute_url())
     form = CommentForm(request.POST)
+    if form.is_valid() and form.is_spam():
+        # Silently pretend success so the bot doesn't learn its
+        # submission was rejected - don't actually save anything.
+        messages.success(request, 'Thanks — your comment was submitted.')
+        return redirect(article.get_absolute_url() + '#comments')
     if form.is_valid():
         comment = form.save(commit=False)
         comment.article = article

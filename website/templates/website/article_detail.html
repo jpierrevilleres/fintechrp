@@ -94,6 +94,13 @@
         {% csrf_token %}
         {# Fallback: include cookie value as hidden input in case the template tag/token and cookie get out of sync on some dev setups #}
         <input type="hidden" name="csrfmiddlewaretoken" value="{{ request.COOKIES.csrftoken }}">
+        {# Honeypot: hidden from real visitors off-screen (not display:none,
+           which some bots detect and skip), left empty by them but often
+           filled in by bots that blindly fill every field. #}
+        <div style="position:absolute; left:-9999px; top:-9999px;" aria-hidden="true">
+            <label for="{{ comment_form.website.id_for_label }}">Website</label>
+            {{ comment_form.website }}
+        </div>
         <div class="mb-3">
             {{ comment_form.name.label_tag }}
             {{ comment_form.name }}
@@ -218,7 +225,7 @@
     "dateModified": "{{ article.updated_at|date:'c' }}",
     "author": {
         "@type": "{% if article.author %}Person{% else %}Organization{% endif %}",
-        "name": "{% if article.author %}{{ article.author.name|escapejs }}{% else %}FinTechRP{% endif %}"
+        "name": "{% if article.author %}{{ article.author.user.get_full_name|default:article.author.user.username|escapejs }}{% else %}FinTechRP{% endif %}"
     },
     "publisher": {
         "@type": "Organization",
