@@ -203,9 +203,9 @@
     {% if featured_article and category_label == 'All' %}
     <div class="featured-article rounded overflow-hidden shadow mb-5">
         {% if featured_article.featured_image %}
-        <img src="{{ featured_article.featured_image.url }}" alt="{{ featured_article.title }}" class="w-100" style="height: 400px; object-fit: cover;">
+        <img src="{{ featured_article.featured_image.url }}" alt="{{ featured_article.title }}" class="w-100" style="height: 400px; object-fit: cover;" fetchpriority="high">
         {% else %}
-        <img src="{% static 'img/finance-banner.jpg' %}" alt="{{ featured_article.title }}" class="w-100" style="height: 400px; object-fit: cover;">
+        <img src="{% static 'img/finance-banner.jpg' %}" alt="{{ featured_article.title }}" class="w-100" style="height: 400px; object-fit: cover;" fetchpriority="high">
         {% endif %}
         <div class="overlay">
             <span class="badge bg-primary mb-2">{{ featured_article.get_category_display }}</span>
@@ -225,10 +225,10 @@
             <article class="card article-card shadow-sm">
                 <div class="position-relative">
                     {% if art.featured_image %}
-                    <img src="{{ art.featured_image.url }}" class="card-img-top" alt="{{ art.title }}">
+                    <img src="{{ art.featured_image.url }}" class="card-img-top" alt="{{ art.title }}" loading="lazy" decoding="async">
                     {% else %}
                     {% with forloop.counter|add:"-1"|divisibleby:"3" as image_index %}
-                    <img src="{% static 'img/'|add:art.category|add:'-'|add:image_index|add:'.jpg' %}" class="card-img-top" alt="{{ art.title }}">
+                    <img src="{% static 'img/'|add:art.category|add:'-'|add:image_index|add:'.jpg' %}" class="card-img-top" alt="{{ art.title }}" loading="lazy" decoding="async">
                     {% endwith %}
                     {% endif %}
                     <span class="category-badge badge {% if art.category == 'finance' %}bg-success{% elif art.category == 'technology' %}bg-primary{% else %}bg-danger{% endif %}">

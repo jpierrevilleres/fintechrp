@@ -43,7 +43,12 @@
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    
+
+    {# Warm up connections to the external origins every page depends on #}
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://pagead2.googlesyndication.com">
+    <link rel="preconnect" href="https://www.googletagmanager.com">
+
     <title>{% block title %}FinTechRP - Finance, Technology & Real Estate Insights{% endblock %}</title>
     
     {# SEO Meta Tags #}

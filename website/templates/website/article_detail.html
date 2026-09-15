@@ -16,7 +16,7 @@
 <!-- Featured Image Banner -->
 {% if article.featured_image %}
 <div class="article-banner mb-4" style="margin-left: calc(-50vw + 50%); margin-right: calc(-50vw + 50%); max-width: 100vw;">
-    <img src="{{ article.featured_image.url }}" alt="{{ article.title }}" class="w-100" style="height: 400px; object-fit: cover; object-position: center;">
+    <img src="{{ article.featured_image.url }}" alt="{{ article.title }}" class="w-100" style="height: 400px; object-fit: cover; object-position: center;" fetchpriority="high">
 </div>
 {% endif %}
 
@@ -65,7 +65,7 @@
     </div>
 
     <div class="article-content" style="margin-top:2rem; font-size:1.05rem; line-height:1.6;">
-        {{ article.body|safe }}
+        {{ article.body|lazy_images }}
     </div>
 </article>
 
