@@ -10,7 +10,7 @@
 {% block og_type %}article{% endblock %}
 {% block og_title %}{{ article.title }}{% endblock %}
 {% block og_description %}{{ article.summary|striptags|truncatewords:30 }}{% endblock %}
-{% block og_image %}{% if article.featured_image %}{{ request.scheme }}://{{ request.get_host }}{{ article.featured_image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% load static %}{% static 'img/default-social.jpg' %}{% endif %}{% endblock %}
+{% block og_image %}{% if article.featured_image %}{{ request.scheme }}://{{ request.get_host }}{{ article.featured_image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% load static %}{% static 'img/finance-banner.jpg' %}{% endif %}{% endblock %}
 
 {% block content %}
 <!-- Featured Image Banner -->
@@ -112,6 +112,7 @@
         <button class="btn btn-primary" type="submit">Submit comment</button>
     </form>
 </section>
+{% endblock %}
 
 {% block extra_js %}
 <script>
@@ -224,7 +225,7 @@
         "name": "FinTechRP",
         "logo": {
             "@type": "ImageObject",
-            "url": "{{ request.scheme }}://{{ request.get_host }}{% load static %}{% static 'img/logo.png' %}"
+            "url": "{{ request.scheme }}://{{ request.get_host }}{% load static %}{% static 'img/favicon.png' %}"
         }
     },
     "mainEntityOfPage": {
@@ -235,5 +236,32 @@
 </script>
 {% endblock %}
 
+{% block breadcrumb_data %}
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+        {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'home' %}"
+        },
+        {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "{{ article.get_category_display }}",
+            "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'article_list_by_category' category_slug=article.category %}"
+        },
+        {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "{{ article.title|escapejs }}",
+            "item": "{{ request.build_absolute_uri }}"
+        }
+    ]
+}
+</script>
 {% endblock %}
 

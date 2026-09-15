@@ -61,7 +61,7 @@
     <meta property="og:url" content="{{ request.build_absolute_uri }}">
     <meta property="og:title" content="{% block og_title %}{{ self.title }}{% endblock %}">
     <meta property="og:description" content="{% block og_description %}{{ self.meta_description }}{% endblock %}">
-    <meta property="og:image" content="{% block og_image %}{{ STATIC_URL }}img/default-social.jpg{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{{ STATIC_URL }}img/finance-banner.jpg{% endblock %}">
     
     {# Twitter #}
     <meta name="twitter:card" content="summary_large_image">
@@ -364,7 +364,7 @@
         "@type": "Organization",
         "name": "FinTechRP",
         "url": "{{ request.scheme }}://{{ request.get_host }}",
-        "logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'img/logo.png' %}",
+        "logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'img/favicon.png' %}",
         "sameAs": [
             "https://twitter.com/fintechrp",
             "https://linkedin.com/company/fintechrp"
@@ -372,5 +372,7 @@
     }
     </script>
     {% endblock %}
+
+    {% block breadcrumb_data %}{% endblock %}
 </body>
 </html>
