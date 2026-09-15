@@ -26,3 +26,13 @@ django_cache/
 *.pem
 *.key
 *.crt
+
+# Log files (should not be version controlled)
+*.log
+*.log.bak
+
+# Deployment backups and snapshots
+/backups/
+/production_snapshot/
+/static_backups/
+homepage*.html

@@ -8,7 +8,7 @@ echo "=========================================="
 # Configuration
 PROJECT_DIR="/home/ubuntu/fintechrp"
 BACKUP_DIR="$PROJECT_DIR/backups"
-BRANCH="fix/remove-duplicate-stylecss"
+BRANCH="${DEPLOY_BRANCH:-main}"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
 # Colors for output
@@ -25,21 +25,32 @@ mkdir -p "$BACKUP_DIR"
 echo -e "${YELLOW}Step 1: Backing up database...${NC}"
 # Backup SQLite database
 if [ -f "$PROJECT_DIR/db.sqlite3" ]; then
-    cp "$PROJECT_DIR/db.sqlite3" "$BACKUP_DIR/db.sqlite3.backup.$TIMESTAMP"
-    gzip "$BACKUP_DIR/db.sqlite3.backup.$TIMESTAMP"
-    echo -e "${GREEN}✓ Database backed up to: $BACKUP_DIR/db.sqlite3.backup.$TIMESTAMP.gz${NC}"
-    
-    # Keep only last 10 backups
+    DB_BACKUP="$BACKUP_DIR/db.sqlite3.backup.$TIMESTAMP"
+    "$PROJECT_DIR/.venv/bin/python" - "$PROJECT_DIR/db.sqlite3" "$DB_BACKUP" <<'PY'
+import sqlite3
+import sys
+
+with sqlite3.connect(sys.argv[1]) as source:
+    with sqlite3.connect(sys.argv[2]) as backup:
+        source.backup(backup)
+PY
+    gzip "$DB_BACKUP"
+    echo "Database backup created: $DB_BACKUP.gz"
     ls -t "$BACKUP_DIR"/db.sqlite3.backup.*.gz | tail -n +11 | xargs -r rm
-    echo -e "${GREEN}✓ Cleaned old backups (keeping last 10)${NC}"
 else
     echo -e "${RED}✗ Warning: Database file not found!${NC}"
+fi
+
+if [ -d "$PROJECT_DIR/media" ]; then
+    tar -czf "$BACKUP_DIR/media.backup.$TIMESTAMP.tar.gz" -C "$PROJECT_DIR" media
+    echo "Media backup created: $BACKUP_DIR/media.backup.$TIMESTAMP.tar.gz"
+    ls -t "$BACKUP_DIR"/media.backup.*.tar.gz | tail -n +6 | xargs -r rm
 fi
 
 echo -e "${YELLOW}Step 2: Pulling latest code from GitHub...${NC}"
 git fetch origin
 git checkout "$BRANCH"
-git pull origin "$BRANCH"
+git pull --ff-only origin "$BRANCH"
 echo -e "${GREEN}✓ Code updated from GitHub${NC}"
 
 echo -e "${YELLOW}Step 3: Activating virtual environment...${NC}"
@@ -64,22 +75,22 @@ if [ ! -f "$CKEDITOR_DIR/ckeditor/.version-4.25.1" ]; then
     echo "Downloading CKEditor 4.25.1-lts (secure version)..."
     mkdir -p "$CKEDITOR_DIR"
     cd "$CKEDITOR_DIR"
-    
+
     # Download CKEditor 4.25.1-lts standard package
     wget -q https://cdn.ckeditor.com/4.25.1-lts/standard/ckeditor_4.25.1-lts_standard.zip -O ckeditor.zip
-    
+
     # Backup old version if exists
     if [ -d "ckeditor" ]; then
         mv ckeditor "ckeditor.backup.$(date +%Y%m%d_%H%M%S)"
     fi
-    
+
     # Extract new version
     unzip -q ckeditor.zip
     rm ckeditor.zip
-    
+
     # Mark version
     echo "4.25.1-lts" > ckeditor/.version-4.25.1
-    
+
     echo -e "${GREEN}✓ CKEditor updated to 4.25.1-lts${NC}"
 else
     echo -e "${GREEN}✓ CKEditor 4.25.1-lts already installed${NC}"
