@@ -1,14 +1,30 @@
 #!/bin/bash
 set -e  # Exit on any error
 
+# Configuration
+PROJECT_DIR="/home/ubuntu/fintechrp"
+BRANCH="${DEPLOY_BRANCH:-main}"
+
+cd "$PROJECT_DIR"
+
+# This script pulls its own latest version from git. If the rest of the
+# steps below ran in the same process, bash could read a mix of the old
+# and new file off disk mid-execution. So: sync the code first, then
+# re-exec into the freshly-pulled copy of this script for everything else.
+if [ -z "$DEPLOY_SCRIPT_REEXECED" ]; then
+    echo "Syncing code from $BRANCH before running deploy..."
+    git fetch origin
+    git checkout "$BRANCH"
+    git pull --ff-only origin "$BRANCH"
+    export DEPLOY_SCRIPT_REEXECED=1
+    exec bash "$PROJECT_DIR/scripts/deploy.sh"
+fi
+
 echo "=========================================="
 echo "Starting deployment: $(date)"
 echo "=========================================="
 
-# Configuration
-PROJECT_DIR="/home/ubuntu/fintechrp"
 BACKUP_DIR="$PROJECT_DIR/backups"
-BRANCH="${DEPLOY_BRANCH:-main}"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
 # Colors for output
@@ -17,7 +33,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
-cd "$PROJECT_DIR"
+echo -e "${GREEN}✓ Code up to date: $(git rev-parse --short HEAD) on $BRANCH${NC}"
 
 # Create backup directory if it doesn't exist
 mkdir -p "$BACKUP_DIR"
@@ -47,29 +63,23 @@ if [ -d "$PROJECT_DIR/media" ]; then
     ls -t "$BACKUP_DIR"/media.backup.*.tar.gz | tail -n +6 | xargs -r rm
 fi
 
-echo -e "${YELLOW}Step 2: Pulling latest code from GitHub...${NC}"
-git fetch origin
-git checkout "$BRANCH"
-git pull --ff-only origin "$BRANCH"
-echo -e "${GREEN}✓ Code updated from GitHub${NC}"
-
-echo -e "${YELLOW}Step 3: Activating virtual environment...${NC}"
+echo -e "${YELLOW}Step 2: Activating virtual environment...${NC}"
 source "$PROJECT_DIR/.venv/bin/activate"
 echo -e "${GREEN}✓ Virtual environment activated${NC}"
 
-echo -e "${YELLOW}Step 4: Installing/updating dependencies...${NC}"
+echo -e "${YELLOW}Step 3: Installing/updating dependencies...${NC}"
 "$PROJECT_DIR/.venv/bin/pip" install -r requirements.txt --quiet
 echo -e "${GREEN}✓ Dependencies updated${NC}"
 
-echo -e "${YELLOW}Step 5: Running database migrations...${NC}"
+echo -e "${YELLOW}Step 4: Running database migrations...${NC}"
 "$PROJECT_DIR/.venv/bin/python" manage.py migrate --noinput
 echo -e "${GREEN}✓ Migrations applied${NC}"
 
-echo -e "${YELLOW}Step 6: Collecting static files...${NC}"
+echo -e "${YELLOW}Step 5: Collecting static files...${NC}"
 "$PROJECT_DIR/.venv/bin/python" manage.py collectstatic --noinput
 echo -e "${GREEN}✓ Static files collected${NC}"
 
-echo -e "${YELLOW}Step 6.5: Updating CKEditor to secure LTS version...${NC}"
+echo -e "${YELLOW}Step 5.5: Updating CKEditor to secure LTS version...${NC}"
 CKEDITOR_DIR="$PROJECT_DIR/static/ckeditor"
 if [ ! -f "$CKEDITOR_DIR/ckeditor/.version-4.25.1" ]; then
     echo "Downloading CKEditor 4.25.1-lts (secure version)..."
@@ -97,11 +107,11 @@ else
 fi
 cd "$PROJECT_DIR"
 
-echo -e "${YELLOW}Step 6.6: Re-collecting static files with new CKEditor...${NC}"
+echo -e "${YELLOW}Step 5.6: Re-collecting static files with new CKEditor...${NC}"
 "$PROJECT_DIR/.venv/bin/python" manage.py collectstatic --noinput
 echo -e "${GREEN}✓ Static files re-collected${NC}"
 
-echo -e "${YELLOW}Step 7: Restarting Gunicorn...${NC}"
+echo -e "${YELLOW}Step 6: Restarting Gunicorn...${NC}"
 sudo systemctl restart gunicorn
 sleep 2
 if sudo systemctl is-active --quiet gunicorn; then
@@ -112,11 +122,11 @@ else
     exit 1
 fi
 
-echo -e "${YELLOW}Step 8: Reloading Nginx...${NC}"
+echo -e "${YELLOW}Step 7: Reloading Nginx...${NC}"
 sudo systemctl reload nginx
 echo -e "${GREEN}✓ Nginx reloaded${NC}"
 
-echo -e "${YELLOW}Step 9: Checking service status...${NC}"
+echo -e "${YELLOW}Step 8: Checking service status...${NC}"
 sudo systemctl status gunicorn --no-pager -l | head -20
 
 echo "=========================================="
