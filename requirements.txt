@@ -15,7 +15,7 @@ Pillow==10.1.0
 redis==5.0.1
 python-dotenv==1.0.0
 django-storages==1.14.2
-django-crispy-forms==2.1
+django-crispy-forms==2.3
 django-ckeditor==6.7.3
 crispy-bootstrap5==2025.6
 python-slugify==8.0.1
