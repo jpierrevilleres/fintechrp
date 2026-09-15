@@ -376,6 +376,25 @@ STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
+# nginx serves everything under /static/ with a 30-day immutable cache
+# (nginx_alb_cloudfront.conf). Without content-hashed filenames, a
+# browser that already cached e.g. main.js keeps running that stale
+# copy for a month even after a new deploy - which is exactly what
+# happened with the dark mode toggle: new HTML with the button, old
+# cached JS with no click handler for it, so clicking did nothing.
+# ManifestStaticFilesStorage renames each file to include a hash of
+# its content (main.<hash>.js) and rewrites every {% static %} tag to
+# match, so a changed file gets a new URL and is never served from a
+# stale cache.
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
+    },
+}
+
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
