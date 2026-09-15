@@ -1,14 +1,14 @@
 {% extends "website/base.html" %}
-{% load html_utils %}
+{% load static html_utils %}
 
 {% block title %}Home{% endblock %}
 
 {% block content %}
 
 <!-- Hero / Intro -->
-<section class="mb-4">
-    <h1 class="mb-2">Fintech RP</h1>
-    <p class="text-muted" style="max-width: 640px;">
+<section class="text-center py-5 mb-4">
+    <h1 class="display-title mb-3">Fintech RP</h1>
+    <p class="lead text-muted mx-auto" style="max-width: 640px;">
         Clear insight across finance, technology, real estate, and trade.
         We highlight the signals that actually matter for money decisions.
     </p>
@@ -16,27 +16,47 @@
 
 <!-- Latest Articles -->
 <section class="mb-5">
-    <h2 class="h4 mb-3">Latest articles</h2>
-    <ul class="list-unstyled">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h4 mb-0">Latest articles</h2>
+        <a href="{% url 'article_list' %}" class="text-decoration-none">View all articles &rarr;</a>
+    </div>
+
+    {% if latest_articles %}
+    <div class="row g-4">
         {% for art in latest_articles %}
-            <li class="mb-3">
-                <a href="{% url 'article_detail' slug=art.slug %}">
-                    <strong>{{ art.title }}</strong>
-                </a><br>
-                <small class="text-muted">
-                    {{ art.created_at|date:"Y-m-d" }} • {{ art.get_category_display }}
-                </small>
-                <p class="mb-0">
-                    {{ art.summary|default:art.body|striptags|html_unescape|truncatechars:160 }}
-                </p>
-            </li>
-        {% empty %}
-            <li class="text-muted">No articles yet.</li>
+        <div class="col-md-6 col-lg-4">
+            <article class="card article-card shadow-sm h-100">
+                <div class="position-relative">
+                    {% if art.featured_image %}
+                    <img src="{{ art.featured_image.url }}" class="card-img-top" alt="{{ art.title }}"
+                         {% if forloop.first %}fetchpriority="high"{% else %}loading="lazy" decoding="async"{% endif %}>
+                    {% else %}
+                    {% fallback_image_path art.category forloop.counter as fallback_path %}
+                    <img src="{% static fallback_path %}" class="card-img-top" alt="{{ art.title }}"
+                         {% if forloop.first %}fetchpriority="high"{% else %}loading="lazy" decoding="async"{% endif %}>
+                    {% endif %}
+                    <span class="category-badge badge {% if art.category == 'finance' %}bg-success{% elif art.category == 'technology' %}bg-primary{% elif art.category == 'real_estate' %}bg-danger{% else %}bg-warning{% endif %}">
+                        {{ art.get_category_display }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title h5">
+                        <a href="{% url 'article_detail' slug=art.slug %}" class="text-decoration-none text-dark stretched-link">
+                            {{ art.title }}
+                        </a>
+                    </h3>
+                    <p class="card-summary text-muted small mb-2">
+                        {{ art.summary|default:art.body|striptags|html_unescape|truncatechars:120 }}
+                    </p>
+                    <small class="text-muted">{{ art.created_at|date:"M d, Y" }}</small>
+                </div>
+            </article>
+        </div>
         {% endfor %}
-    </ul>
-    <p class="mt-2">
-        <a href="{% url 'article_list' %}">View all articles →</a>
-    </p>
+    </div>
+    {% else %}
+    <p class="text-muted">No articles yet.</p>
+    {% endif %}
 </section>
 
 <!-- Topics section: Finance / Technology / Real Estate / Trade -->

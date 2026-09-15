@@ -323,9 +323,9 @@
     
     <script>
         // Check if user has already made a choice
-        const consentStatus = localStorage.getItem('cookieConsent');
-        
-        if (!consentStatus) {
+        const existingConsentChoice = localStorage.getItem('cookieConsent');
+
+        if (!existingConsentChoice) {
             // No previous choice - show banner (tracking already enabled by default)
             document.getElementById('cookieConsent').style.display = 'block';
         }

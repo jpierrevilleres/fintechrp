@@ -12,6 +12,20 @@ h1, h2, h3, h4, h5, h6 {
     margin-bottom: 1rem;
 }
 
+/* Hero heading (used on homepage and category pages) */
+.display-title {
+    font-size: 2.75rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(120deg, #0056b3, #00a0e4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+@media (max-width: 768px) {
+    .display-title { font-size: 2rem; }
+}
+
 /* Article Cards */
 .article-card {
     border: none;
@@ -94,31 +108,6 @@ h1, h2, h3, h4, h5, h6 {
 .article-card .card-body { padding: 1.25rem; }
 .article-card .card-title a { color: #1f2937; text-decoration: none; }
 .article-card .card-title a:hover { color: #0d6efd; }
-
-/* Overlay that appears on image hover */
-.card-overlay {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    transform: translateY(100%);
-    /* removed dark overlay per user request */
-    background: none;
-    color: inherit;
-    padding: 1rem;
-    transition: transform 240ms ease, opacity 240ms ease;
-    opacity: 0;
-}
-.article-card:hover .card-overlay,
-.article-card:focus-within .card-overlay {
-    transform: translateY(0%);
-    opacity: 1;
-}
-.overlay-excerpt { margin: 0 0 0.6rem 0; font-size: 0.95rem; line-height: 1.35; color: #1f2937; }
-.overlay-row { display:flex; justify-content:flex-start; align-items:center; gap:0.5rem; }
-.overlay-meta { display:flex; gap:0.5rem; align-items:center; }
-.chip { background: rgba(0,0,0,0.06); padding: 0.25rem 0.6rem; border-radius: 999px; font-size: 0.8rem; color: #111827; }
-/* overlay CTA removed - card body contains the primary Read More CTA */
 
 /* Tag chips in card footer */
 .card-footer .badge { background: rgba(0,0,0,0.05); color: #212529; border-radius: 6px; padding: 0.35rem 0.5rem; }
@@ -353,22 +342,8 @@ footer .social-icons a:hover { color: #084298; transform: translateY(-2px); }
     .social-link svg { width: 13px; height: 13px; }
 }
 
-/* Mobile: make card overlay static (always visible) and hide duplicate card-text */
 @media (max-width: 767px) {
     .article-card { display: flex; flex-direction: column; }
-    .article-card .position-relative { display: block; }
-    .card-overlay {
-        position: static;
-        transform: none;
-        opacity: 1;
-        background: transparent;
-        color: inherit;
-        padding: 0.75rem 0 0;
-    }
-    .overlay-excerpt { color: #495057; font-size: 0.95rem; margin-bottom: 0.5rem; }
-    .overlay-row { margin-top: 0.25rem; }
-    /* Hide the duplicated summary inside card-body on small screens */
-    .article-card .card-text { display: none; }
     /* Keep footer chips visible and well spaced */
     .card-footer .badge { margin-bottom: 0.5rem; }
 }
