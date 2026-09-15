@@ -1,6 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, Http404
 from django.contrib import messages
+from django.core.mail import send_mail
+from django.conf import settings
 from .models import ContactMessage, Article, Newsletter, Comment, Like
 from .forms import ContactForm, NewsletterForm, CommentForm
 
@@ -62,7 +64,21 @@ def newsletter_signup(request):
     if request.method == "POST":
         form = NewsletterForm(request.POST)
         if form.is_valid():
-            form.save()
+            subscriber = form.save()
+            send_mail(
+                "Welcome to the FinTechRP newsletter",
+                (
+                    f"Hi{' ' + subscriber.name if subscriber.name else ''},\n\n"
+                    "Thanks for subscribing to FinTechRP - you'll get our latest "
+                    "articles on finance, technology, real estate and trade "
+                    "delivered straight to your inbox.\n\n"
+                    "If you didn't sign up for this, you can ignore this email.\n\n"
+                    "- The FinTechRP team"
+                ),
+                settings.DEFAULT_FROM_EMAIL,
+                [subscriber.email],
+                fail_silently=True,
+            )
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({'status': 'success', 'message': 'Thank you for subscribing!'})
             messages.success(request, 'Thank you for subscribing to our newsletter!')
