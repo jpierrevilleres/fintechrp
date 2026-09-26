@@ -1,3 +1,5 @@
+import ipaddress
+
 from django.conf import settings
 from django.http import HttpResponseForbidden, HttpResponsePermanentRedirect
 
@@ -57,8 +59,19 @@ class AdminIPRestrictionMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
         self.admin_url = '/' + settings.ADMIN_URL.strip('/') + '/' if settings.ADMIN_URL else '/admin/'
-        # Normalize allowed IPs
-        self.allowed = set(settings.ADMIN_ALLOWED_IPS or [])
+        # Entries may be single IPs or CIDR ranges (e.g. '213.55.218.0/24'),
+        # since a residential ISP reassigns addresses within its block
+        self.allowed = [
+            ipaddress.ip_network(entry.strip(), strict=False)
+            for entry in (settings.ADMIN_ALLOWED_IPS or [])
+        ]
+
+    def _is_allowed(self, client_ip):
+        try:
+            ip = ipaddress.ip_address(client_ip)
+        except (TypeError, ValueError):
+            return False
+        return any(ip in network for network in self.allowed)
 
     def __call__(self, request):
         path = request.path
@@ -71,7 +84,7 @@ class AdminIPRestrictionMiddleware:
             else:
                 client_ip = request.META.get('REMOTE_ADDR')
 
-            if client_ip not in self.allowed:
+            if not self._is_allowed(client_ip):
                 return HttpResponseForbidden('Access to admin is restricted')
 
         return self.get_response(request)
