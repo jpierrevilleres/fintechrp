@@ -91,8 +91,9 @@ X_FRAME_OPTIONS = 'DENY'
 # below reads the real client IP from X-Forwarded-For instead, which ALB
 # does set correctly. 84.74.115.21 (the old nginx-configured IP) was
 # confirmed stale. The home connection is a dynamic residential IP:
-# 213.55.218.85 on 2026-09-15, 213.55.218.42 on 2026-09-27.
-ADMIN_ALLOWED_IPS = env.list('ADMIN_ALLOWED_IPS', default=['127.0.0.1', '213.55.218.85', '213.55.218.42'])
+# 213.55.218.85 on 2026-09-15, 213.55.218.42 on 2026-09-27,
+# 213.55.247.123 on 2026-10-23.
+ADMIN_ALLOWED_IPS = env.list('ADMIN_ALLOWED_IPS', default=['127.0.0.1', '213.55.218.85', '213.55.218.42', '213.55.247.123'])
 ADMIN_URL = 'control-panel-72d3/'
 ADMIN_HONEYPOT = False  # Enable admin honeypot protection
 
