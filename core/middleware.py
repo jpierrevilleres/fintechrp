@@ -52,8 +52,9 @@ class FixDuplicateHostHeaderMiddleware:
 class AdminIPRestrictionMiddleware:
     """Reject requests to the admin URL that don't originate from allowed IPs.
 
-    Reads `settings.ADMIN_ALLOWED_IPS` and `settings.ADMIN_URL`. Checks the
-    request's IP using X-Forwarded-For (if present) falling back to REMOTE_ADDR.
+    Reads `settings.ADMIN_ALLOWED_IPS`, `settings.ADMIN_PROXY_HOPS` and
+    `settings.ADMIN_URL`. Checks the request's IP using X-Forwarded-For (if
+    present, counted from the right) falling back to REMOTE_ADDR.
     """
 
     def __init__(self, get_response):
@@ -76,11 +77,17 @@ class AdminIPRestrictionMiddleware:
     def __call__(self, request):
         path = request.path
         if path.startswith(self.admin_url):
-            # Determine client IP
+            # Determine client IP. CloudFront *appends* the viewer IP to any
+            # X-Forwarded-For the client sends, so the leftmost entries are
+            # attacker-controlled. Count from the right instead: each of our
+            # proxies appends one entry (CloudFront: viewer IP, ALB: CloudFront
+            # IP, nginx: ALB IP), so the real client is ADMIN_PROXY_HOPS from
+            # the end. Too few entries means the request skipped a proxy.
             xff = request.META.get('HTTP_X_FORWARDED_FOR')
             if xff:
-                # X-Forwarded-For may contain multiple IPs
-                client_ip = xff.split(',')[0].strip()
+                hops = [part.strip() for part in xff.split(',') if part.strip()]
+                proxy_hops = settings.ADMIN_PROXY_HOPS
+                client_ip = hops[-proxy_hops] if len(hops) >= proxy_hops else None
             else:
                 client_ip = request.META.get('REMOTE_ADDR')
 

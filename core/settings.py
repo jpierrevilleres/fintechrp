@@ -94,6 +94,9 @@ X_FRAME_OPTIONS = 'DENY'
 # 213.55.218.85 on 2026-09-15, 213.55.218.42 on 2026-09-27,
 # 213.55.247.123 on 2026-10-23.
 ADMIN_ALLOWED_IPS = env.list('ADMIN_ALLOWED_IPS', default=['127.0.0.1', '213.55.218.85', '213.55.218.42', '213.55.247.123'])
+# Number of proxies that each append one X-Forwarded-For entry in front of
+# Django: CloudFront -> ALB -> nginx. See AdminIPRestrictionMiddleware.
+ADMIN_PROXY_HOPS = env.int('ADMIN_PROXY_HOPS', default=3)
 ADMIN_URL = 'control-panel-72d3/'
 ADMIN_HONEYPOT = False  # Enable admin honeypot protection
 
