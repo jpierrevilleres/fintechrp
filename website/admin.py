@@ -1,6 +1,7 @@
 from django import forms
-from django.contrib import admin
-from .models import ContactMessage, Article, Newsletter, Poll, PollOption
+from django.contrib import admin, messages
+from .article_poll import PollBlockError, parse_poll_block
+from .models import ContactMessage, Article, Newsletter, Poll
 import csv
 from django.http import HttpResponse
 
@@ -50,15 +51,7 @@ class PollInlineForm(forms.ModelForm):
         return poll
 
     def _sync_options(self, poll):
-        # Match by text so unchanged options keep their vote counts
-        lines = self.cleaned_data["options_text"]
-        existing = {o.text: o for o in poll.options.all()}
-        for order, text in enumerate(lines):
-            option = existing.pop(text, None) or PollOption(poll=poll, text=text)
-            option.order = order
-            option.save()
-        for leftover in existing.values():
-            leftover.delete()
+        poll.set_options(self.cleaned_data["options_text"])
 
 
 class PollInline(admin.StackedInline):
@@ -85,6 +78,30 @@ class ArticleAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("title",)}  # auto fill slug based on title
     ordering = ("-created_at",)
     inlines = [PollInline]
+
+    def save_related(self, request, form, formsets, change):
+        super().save_related(request, form, formsets, change)
+        # Runs after the poll inline is saved, so a poll block in the body
+        # takes precedence over edits made in the Reader poll section
+        article = form.instance
+        try:
+            parsed = parse_poll_block(article.body)
+        except PollBlockError as e:
+            self.message_user(request, f"Reader poll not updated: {e}", messages.WARNING)
+            return
+        if parsed is None:
+            return
+        question, options = parsed
+        poll, created = Poll.objects.get_or_create(article=article, defaults={"question": question})
+        if poll.question != question:
+            poll.question = question
+            poll.save(update_fields=["question"])
+        poll.set_options(options)
+        self.message_user(
+            request,
+            f"Reader poll {'created' if created else 'updated'} from the body: {question}",
+            messages.SUCCESS,
+        )
 
 
 @admin.register(Newsletter)

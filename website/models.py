@@ -126,6 +126,17 @@ class Poll(models.Model):
     def __str__(self):
         return self.question
 
+    def set_options(self, texts):
+        """Replace the options with `texts`, in order. Matched by text, so
+        an option whose wording is unchanged keeps its vote count."""
+        existing = {o.text: o for o in self.options.all()}
+        for order, text in enumerate(texts):
+            option = existing.pop(text, None) or PollOption(poll=self, text=text)
+            option.order = order
+            option.save()
+        for leftover in existing.values():
+            leftover.delete()
+
     def results(self):
         options = list(self.options.all())
         total = sum(o.votes for o in options)

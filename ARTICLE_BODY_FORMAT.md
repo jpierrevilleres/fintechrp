@@ -100,15 +100,27 @@ The takeaways are **not** part of the Body either. Fill in the article's
 most). They appear in a box above the body for readers who skim. Follow the same
 writing rules as the body.
 
-## Reader poll
+## Reader poll (last block of the Body)
 
-The poll is **not** part of the Body. On the article's admin page, scroll to
-**Reader poll** at the bottom, click "Add another", and fill in:
+```html
+<div class="fr-poll">
+<p>One question about the reader's own situation?</p>
+<ul>
+<li>First option</li>
+<li>Second option</li>
+<li>Not sure</li>
+</ul>
+</div>
+```
 
-- **Question**: one question about the article.
-- **Options**: 2 to 6 answers, one per line.
+Saving the article in the admin creates the poll from this block, or updates it.
+The block itself is hidden on the page, where the interactive poll appears instead.
 
-Each visitor gets one vote, and the results show as bars once they have voted.
+- **Required shape:** exactly one `<p>` question and 2 to 6 `<li>` options.
+- **Votes when editing:** options whose wording stays the same keep their votes.
+- **A malformed block:** shows a warning after saving, and the article still saves.
+- **No block in the Body:** the poll can still be added by hand in the
+  **Reader poll** section at the bottom of the admin page.
 
 ## Older articles
 

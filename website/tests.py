@@ -199,3 +199,77 @@ class ArticleExtrasTests(TestCase):
 	def test_newsletter_box_present(self):
 		resp = self.client.get(reverse('article_detail', kwargs={'slug': 'main'}))
 		self.assertContains(resp, 'data-location="article"')
+
+
+from django.contrib.auth.models import User
+
+from website.article_poll import PollBlockError, parse_poll_block
+
+POLL_BLOCK = (
+	'<div class="fr-poll">\n<p>Would your budget survive a higher payment?</p>\n'
+	'<ul>\n<li>Yes, comfortably</li>\n<li>Only just</li>\n<li>No</li>\n</ul>\n</div>'
+)
+
+
+class PollBlockParseTests(TestCase):
+	def test_parses_question_and_options(self):
+		body = '<p>Text</p>' + POLL_BLOCK
+		self.assertEqual(
+			parse_poll_block(body),
+			('Would your budget survive a higher payment?', ['Yes, comfortably', 'Only just', 'No']),
+		)
+
+	def test_no_block_returns_none(self):
+		self.assertIsNone(parse_poll_block('<p>Text</p>'))
+
+	def test_entities_unescaped_and_duplicates_dropped(self):
+		body = '<div class="fr-poll"><p>Don&rsquo;t you agree?</p><ul><li>Yes</li><li>Yes</li><li>No</li></ul></div>'
+		self.assertEqual(parse_poll_block(body), ('Don’t you agree?', ['Yes', 'No']))
+
+	def test_too_few_options_is_an_error(self):
+		with self.assertRaises(PollBlockError):
+			parse_poll_block('<div class="fr-poll"><p>Q?</p><ul><li>Only</li></ul></div>')
+
+	def test_block_hidden_when_displayed(self):
+		out = format_article_body('<p>Text</p>' + POLL_BLOCK)
+		self.assertEqual(out, '<p>Text</p>')
+
+
+@override_settings(STORAGES=_PLAIN_STATIC)
+class PollFromBodyAdminTests(TestCase):
+	def setUp(self):
+		User.objects.create_superuser('admin', 'a@example.com', 'pw')
+		self.client.login(username='admin', password='pw')
+
+	def _post(self, url, body):
+		return self.client.post(url, {
+			'title': 'Rates', 'slug': 'rates', 'category': 'real_estate', 'tags': 'housing',
+			'summary': 'S', 'key_takeaways': '', 'body': body, 'meta_description': '',
+			'meta_keywords': '', 'status': 'published', 'is_published': 'on',
+			'read_time': 5, 'view_count': 0,
+			'poll-TOTAL_FORMS': 0, 'poll-INITIAL_FORMS': 0,
+			'poll-MIN_NUM_FORMS': 0, 'poll-MAX_NUM_FORMS': 1,
+		}, follow=True)
+
+	def test_saving_article_creates_then_updates_poll_keeping_votes(self):
+		resp = self._post('/control-panel-72d3/website/article/add/', '<p>Text</p>' + POLL_BLOCK)
+		self.assertContains(resp, 'Reader poll created from the body')
+		article = Article.objects.get(slug='rates')
+		self.assertEqual(article.poll.question, 'Would your budget survive a higher payment?')
+		self.assertEqual([o.text for o in article.poll.options.all()], ['Yes, comfortably', 'Only just', 'No'])
+
+		article.poll.options.filter(text='No').update(votes=4)
+		edited = POLL_BLOCK.replace('<li>Only just</li>', '<li>Barely</li>')
+		resp = self._post(f'/control-panel-72d3/website/article/{article.pk}/change/', '<p>Text</p>' + edited)
+		self.assertContains(resp, 'Reader poll updated from the body')
+		self.assertEqual(
+			[(o.text, o.votes) for o in article.poll.options.all()],
+			[('Yes, comfortably', 0), ('Barely', 0), ('No', 4)],
+		)
+
+	def test_malformed_block_warns_and_saves_article(self):
+		bad = '<div class="fr-poll"><p>Q?</p><ul><li>Only one</li></ul></div>'
+		resp = self._post('/control-panel-72d3/website/article/add/', '<p>Text</p>' + bad)
+		self.assertContains(resp, 'Reader poll not updated')
+		self.assertTrue(Article.objects.filter(slug='rates').exists())
+		self.assertFalse(Poll.objects.exists())
