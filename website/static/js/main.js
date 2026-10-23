@@ -75,10 +75,15 @@ document.addEventListener('DOMContentLoaded', function () {
 // Django's messages framework, was showing "Please correct the errors
 // below" on whatever page the visitor navigated to next - not
 // necessarily the page they submitted from).
+// Handles every newsletter form on the page (footer, and the box after
+// an article), each with its own [role="status"] feedback element.
 document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('newsletterForm');
-    const feedback = document.getElementById('newsletterFeedback');
-    if (!form || !feedback) return;
+    document.querySelectorAll('form.newsletter-form').forEach(setUpNewsletterForm);
+});
+
+function setUpNewsletterForm(form) {
+    const feedback = form.querySelector('[role="status"]');
+    if (!feedback) return;
 
     form.addEventListener('submit', function (e) {
         e.preventDefault();
@@ -100,6 +105,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 feedback.classList.add(isSuccess ? 'text-success' : 'text-danger');
                 if (isSuccess) {
                     form.reset();
+                    if (typeof gtag === 'function') {
+                        gtag('event', 'sign_up', { method: 'newsletter', location: form.dataset.location || 'footer' });
+                    }
                 }
             })
             .catch(function () {
@@ -110,4 +118,4 @@ document.addEventListener('DOMContentLoaded', function () {
                 submitBtn.disabled = false;
             });
     });
-});
+}

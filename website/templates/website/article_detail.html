@@ -24,7 +24,7 @@
 </div>
 {% endif %}
 
-<article itemscope itemtype="https://schema.org/Article">
+<article itemscope itemtype="https://schema.org/Article" id="article" data-article-slug="{{ article.slug }}" data-article-url="{{ article_url }}">
     <p>
         <small>
             {{ article.created_at|date:"Y-m-d" }} •
@@ -50,20 +50,31 @@
             <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">Share</button>
             <ul class="dropdown-menu">
                 <li>
-                    <a class="dropdown-item" target="_blank" rel="noopener noreferrer" href="https://twitter.com/intent/tweet?text={{ article.title|urlencode }}&url={{ article_url|urlencode }}">Twitter</a>
+                    <a class="dropdown-item" target="_blank" rel="noopener noreferrer" data-share-method="x" href="https://twitter.com/intent/tweet?text={{ article.title|urlencode }}&url={{ article_url|urlencode }}">Twitter</a>
                 </li>
                 <li>
-                    <a class="dropdown-item" target="_blank" rel="noopener noreferrer" href="https://www.facebook.com/sharer/sharer.php?u={{ article_url|urlencode }}">Facebook</a>
+                    <a class="dropdown-item" target="_blank" rel="noopener noreferrer" data-share-method="facebook" href="https://www.facebook.com/sharer/sharer.php?u={{ article_url|urlencode }}">Facebook</a>
                 </li>
                 <li>
-                    <a class="dropdown-item" target="_blank" rel="noopener noreferrer" href="https://www.linkedin.com/shareArticle?mini=true&url={{ article_url|urlencode }}&title={{ article.title|urlencode }}">LinkedIn</a>
+                    <a class="dropdown-item" target="_blank" rel="noopener noreferrer" data-share-method="linkedin" href="https://www.linkedin.com/shareArticle?mini=true&url={{ article_url|urlencode }}&title={{ article.title|urlencode }}">LinkedIn</a>
                 </li>
                 <li>
-                    <button class="dropdown-item" type="button" id="copy-link-btn" data-article-url="{{ article_url }}">Copy link</button>
+                    <button class="dropdown-item" type="button" id="copy-link-btn" data-share-method="copy_link" data-article-url="{{ article_url }}">Copy link</button>
                 </li>
             </ul>
         </div>
     </div>
+
+    {% with takeaways=article.takeaways %}
+    {% if takeaways %}
+    <aside class="fr-takeaways" aria-label="Key takeaways">
+        <div class="fr-takeaways-title"><i class="bi bi-lightning-charge me-2"></i>Key takeaways</div>
+        <ul>
+            {% for line in takeaways %}<li>{{ line }}</li>{% endfor %}
+        </ul>
+    </aside>
+    {% endif %}
+    {% endwith %}
 
     <div class="article-content" style="margin-top:2rem; font-size:1.05rem; line-height:1.6;">
         {{ article.body|format_article_body|lazy_images }}
@@ -91,6 +102,45 @@
     </section>
     {% endif %}
 </article>
+
+<section class="fr-newsletter" aria-labelledby="article-newsletter-title">
+    <div class="fr-newsletter-title" id="article-newsletter-title"><i class="bi bi-envelope-paper me-2"></i>Enjoyed this? Get the next one in your inbox</div>
+    <p class="fr-newsletter-text">New articles on finance, technology, trade and real estate, written in plain English.</p>
+    <form action="{% url 'newsletter_signup' %}" method="post" class="newsletter-form" data-location="article">
+        {% csrf_token %}
+        <div class="input-group">
+            <input type="email" name="email" class="form-control" placeholder="Your email" aria-label="Your email" required>
+            <button class="btn btn-primary" type="submit">Subscribe</button>
+        </div>
+        <div class="small mt-2" role="status" aria-live="polite"></div>
+    </form>
+</section>
+
+{% if related_articles %}
+<section class="fr-related" aria-labelledby="related-title">
+    <h2 class="h4 mb-3" id="related-title">Keep reading</h2>
+    <div class="row g-3">
+        {% for art in related_articles %}
+        <div class="col-md-4">
+            <article class="card article-card h-100">
+                {% if art.featured_image %}
+                <img src="{{ art.featured_image.url }}" class="card-img-top" alt="" loading="lazy" decoding="async">
+                {% else %}
+                {% fallback_image_path art.category forloop.counter as fallback_path %}
+                <img src="{% static fallback_path %}" class="card-img-top" alt="" loading="lazy" decoding="async">
+                {% endif %}
+                <div class="card-body">
+                    <small class="text-muted">{{ art.get_category_display }}</small>
+                    <h3 class="card-title h6 mt-1 mb-0">
+                        <a href="{% url 'article_detail' slug=art.slug %}" class="text-decoration-none stretched-link" data-related-slug="{{ art.slug }}">{{ art.title }}</a>
+                    </h3>
+                </div>
+            </article>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
 
 <p style="margin-top:2rem;">
     <a href="{% url 'article_list' %}">← Back to articles</a>
@@ -177,6 +227,7 @@
                 }
             }).then(r => r.json()).then(data => {
                 if (data.likes_count !== undefined) {
+                    if (window.frTrack) window.frTrack(data.liked ? 'like' : 'unlike');
                     document.getElementById('like-count').textContent = data.likes_count;
                     if (data.liked) {
                         likeBtn.classList.remove('btn-outline-primary');

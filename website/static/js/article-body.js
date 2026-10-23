@@ -2,6 +2,73 @@
 // HTML that already reads fine without JavaScript.
 (function () {
     const body = document.querySelector('.article-content');
+    const articleEl = document.getElementById('article');
+    const slug = articleEl ? articleEl.dataset.articleSlug : '';
+    const articleUrl = articleEl ? articleEl.dataset.articleUrl : window.location.href;
+
+    // Google Analytics event, tagged with the article. Respects the cookie
+    // consent already configured in base.html; a no-op if GA isn't loaded.
+    function track(name, params) {
+        if (typeof window.gtag !== 'function') return;
+        window.gtag('event', name, Object.assign({ article_slug: slug }, params || {}));
+    }
+    window.frTrack = track;
+
+    function toast(message) {
+        const el = document.createElement('div');
+        el.className = 'alert alert-success position-fixed';
+        el.style.cssText = 'right:20px;bottom:20px;z-index:2000';
+        el.textContent = message;
+        document.body.appendChild(el);
+        setTimeout(function () { el.remove(); }, 2600);
+    }
+
+    function copyText(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            return navigator.clipboard.writeText(text);
+        }
+        return Promise.reject(new Error('Clipboard unavailable'));
+    }
+
+    // Share buttons under each pull quote. X takes the quote as text;
+    // LinkedIn only accepts a URL, so the quote is copied for pasting.
+    function addQuoteShare(quote) {
+        const text = quote.textContent.trim();
+        if (!text) return;
+        const bar = document.createElement('div');
+        bar.className = 'fr-quote-share';
+
+        function button(label, icon, method, onClick) {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'btn btn-outline-secondary';
+            b.innerHTML = '<i class="bi ' + icon + ' me-1"></i>';
+            b.appendChild(document.createTextNode(label));
+            b.addEventListener('click', function () {
+                onClick();
+                track('quote_share', { method: method });
+            });
+            bar.appendChild(b);
+        }
+
+        button('Share on X', 'bi-twitter-x', 'x', function () {
+            const url = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent('“' + text + '”')
+                + '&url=' + encodeURIComponent(articleUrl);
+            window.open(url, '_blank', 'noopener');
+        });
+        button('LinkedIn', 'bi-linkedin', 'linkedin', function () {
+            copyText('“' + text + '”\n' + articleUrl).then(function () {
+                toast('Quote copied, paste it into your LinkedIn post');
+            }).catch(function () {});
+            window.open('https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(articleUrl), '_blank', 'noopener');
+        });
+        button('Copy quote', 'bi-clipboard', 'copy', function () {
+            copyText('“' + text + '”\n' + articleUrl).then(function () {
+                toast('Quote copied');
+            }).catch(function () {});
+        });
+        quote.appendChild(bar);
+    }
 
     // Charts: <table class="fr-chart"> with a label column and a value column
     // becomes a horizontal bar chart. The original value text ("47%",
@@ -69,6 +136,7 @@
 
     if (body) {
         body.querySelectorAll('table.fr-chart').forEach(buildChart);
+        body.querySelectorAll('.fr-pullquote').forEach(addQuoteShare);
 
         // Jargon tooltips: <abbr title="plain English meaning">term</abbr>.
         // tabindex lets phone users tap to show the meaning.
@@ -76,9 +144,52 @@
             body.querySelectorAll('abbr[title]').forEach(function (el) {
                 el.setAttribute('tabindex', '0');
                 new bootstrap.Tooltip(el, { trigger: 'hover focus' });
+                el.addEventListener('shown.bs.tooltip', function () {
+                    track('tooltip_view', { term: el.textContent.trim() });
+                }, { once: true });
             });
         }
+
+        body.querySelectorAll('details.fr-references').forEach(function (d) {
+            d.addEventListener('toggle', function () {
+                if (d.open) track('references_open');
+            });
+        });
+
+        // How far readers get through the article body (not the whole
+        // page, so comments and the footer don't count as reading)
+        const marks = [25, 50, 75, 100];
+        const reached = {};
+        let ticking = false;
+        function checkDepth() {
+            ticking = false;
+            const rect = body.getBoundingClientRect();
+            const read = (window.innerHeight - rect.top) / rect.height * 100;
+            marks.forEach(function (m) {
+                if (read >= m && !reached[m]) {
+                    reached[m] = true;
+                    track('article_scroll', { percent: m });
+                }
+            });
+            if (reached[100]) window.removeEventListener('scroll', onScroll);
+        }
+        function onScroll() {
+            if (!ticking) { ticking = true; requestAnimationFrame(checkDepth); }
+        }
+        window.addEventListener('scroll', onScroll, { passive: true });
     }
+
+    // Share menu under the title, and the "Keep reading" cards
+    document.querySelectorAll('[data-share-method]').forEach(function (el) {
+        el.addEventListener('click', function () {
+            track('share', { method: el.dataset.shareMethod, content_type: 'article', item_id: slug });
+        });
+    });
+    document.querySelectorAll('[data-related-slug]').forEach(function (el) {
+        el.addEventListener('click', function () {
+            track('related_article_click', { target_slug: el.dataset.relatedSlug });
+        });
+    });
 
     // Reader poll
     const poll = document.getElementById('poll');
@@ -130,7 +241,10 @@
         }).then(function (r) {
             if (!r.ok) throw new Error('Vote failed');
             return r.json();
-        }).then(renderResults).catch(function () {
+        }).then(function (data) {
+            track('poll_vote', { poll_option: e.submitter.textContent.trim() });
+            renderResults(data);
+        }).catch(function () {
             form.querySelectorAll('button').forEach(function (b) { b.disabled = false; });
         });
     });

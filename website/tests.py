@@ -164,3 +164,38 @@ class OctoberPollsMigrationTests(TestCase):
 		migration.add_polls(apps, None)
 		self.assertEqual(Poll.objects.count(), 1)
 		self.assertEqual(article.poll.options.count(), 4)
+
+
+@override_settings(STORAGES=_PLAIN_STATIC)
+class ArticleExtrasTests(TestCase):
+	def setUp(self):
+		self.article = Article.objects.create(
+			title='Main', slug='main', category='trade', body='<p>Body</p>',
+			key_takeaways='First point\n\n  Second point  \nThird\nFourth\nFifth',
+		)
+
+	def test_takeaways_box_shows_up_to_four_lines(self):
+		resp = self.client.get(reverse('article_detail', kwargs={'slug': 'main'}))
+		self.assertContains(resp, 'Key takeaways')
+		self.assertContains(resp, '<li>Second point</li>')
+		self.assertNotContains(resp, 'Fifth')
+
+	def test_no_takeaways_box_when_empty(self):
+		Article.objects.filter(pk=self.article.pk).update(key_takeaways='')
+		resp = self.client.get(reverse('article_detail', kwargs={'slug': 'main'}))
+		self.assertNotContains(resp, 'Key takeaways')
+
+	def test_related_prefers_same_category_then_fills(self):
+		same = Article.objects.create(title='Same', slug='same', category='trade', body='x')
+		Article.objects.create(title='Hidden', slug='hidden', category='trade', body='x', is_published=False)
+		other = Article.objects.create(title='Other', slug='other', category='finance', body='x')
+		resp = self.client.get(reverse('article_detail', kwargs={'slug': 'main'}))
+		related = resp.context['related_articles']
+		self.assertEqual(related[0], same)
+		self.assertIn(other, related)
+		self.assertNotIn(self.article, related)
+		self.assertEqual(len(related), 2)
+
+	def test_newsletter_box_present(self):
+		resp = self.client.get(reverse('article_detail', kwargs={'slug': 'main'}))
+		self.assertContains(resp, 'data-location="article"')

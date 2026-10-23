@@ -179,6 +179,13 @@ def article_detail(request, slug):
     except Exception:
         article_url = request.build_absolute_uri()
 
+    # Up to 3 more reads: same category first, then the latest from any
+    published = Article.objects.filter(is_published=True).exclude(pk=article.pk)
+    related = list(published.filter(category=article.category)[:3])
+    if len(related) < 3:
+        related += list(published.exclude(pk__in=[a.pk for a in related])
+                        .exclude(category=article.category)[:3 - len(related)])
+
     poll = Poll.objects.filter(article=article, is_active=True).prefetch_related('options').first()
     poll_vote = request.session.get('poll_votes', {}).get(str(poll.id)) if poll else None
 
@@ -191,6 +198,7 @@ def article_detail(request, slug):
         "poll": poll,
         "poll_results": poll.results() if poll and poll_vote else None,
         "poll_vote": poll_vote,
+        "related_articles": related,
     })
 
 

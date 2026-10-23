@@ -42,6 +42,10 @@ class Article(models.Model):
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     tags = TaggableManager()
     summary = models.TextField(help_text="Short teaser or preview paragraph", blank=True)
+    key_takeaways = models.TextField(
+        blank=True,
+        help_text="Optional. One takeaway per line, up to 4. Shown in a box at the top of the article for readers who skim.",
+    )
     body = RichTextUploadingField(help_text="Full article content")
     featured_image = models.ImageField(upload_to='articles/%Y/%m/', blank=True)
     meta_description = models.CharField(max_length=160, blank=True, help_text="SEO meta description")
@@ -63,6 +67,10 @@ class Article(models.Model):
 
     def get_absolute_url(self):
         return reverse('article_detail', kwargs={'slug': self.slug})
+
+    def takeaways(self):
+        lines = [line.strip() for line in self.key_takeaways.splitlines()]
+        return [line for line in lines if line][:4]
 
 
 
