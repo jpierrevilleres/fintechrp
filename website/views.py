@@ -170,10 +170,8 @@ def article_detail(request, slug):
     user_liked = False
     if request.user.is_authenticated:
         user_liked = article.likes.filter(user=request.user).exists()
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-        if ip:
-            user_liked = article.likes.filter(ip_address=ip).exists()
+    elif request.session.session_key:
+        user_liked = article.likes.filter(session_key=request.session.session_key).exists()
 
     # compute absolute article url for share links (avoid calling methods in templates)
     try:
@@ -228,27 +226,22 @@ def toggle_like(request, slug):
     if request.method != 'POST':
         return JsonResponse({'error': 'POST required'}, status=405)
     article = get_object_or_404(Article, slug=slug, is_published=True)
-    user = request.user if request.user.is_authenticated else None
-    ip = request.META.get('REMOTE_ADDR')
-
-    liked = False
-    if user:
-        like = Like.objects.filter(article=article, user=user).first()
-        if like:
-            like.delete()
-            liked = False
-        else:
-            Like.objects.create(article=article, user=user)
-            liked = True
+    if request.user.is_authenticated:
+        visitor = {'user': request.user}
     else:
-        # fallback to IP-based likes for anonymous users
-        like = Like.objects.filter(article=article, ip_address=ip).first()
-        if like:
-            like.delete()
-            liked = False
-        else:
-            Like.objects.create(article=article, ip_address=ip)
-            liked = True
+        # Anonymous visitors are told apart by session, not IP: behind
+        # CloudFront/ALB every request's REMOTE_ADDR is the load balancer
+        if not request.session.session_key:
+            request.session.save()
+        visitor = {'session_key': request.session.session_key}
+
+    like = Like.objects.filter(article=article, **visitor).first()
+    if like:
+        like.delete()
+        liked = False
+    else:
+        Like.objects.create(article=article, **visitor)
+        liked = True
 
     return JsonResponse({'liked': liked, 'likes_count': article.likes.count()})
 

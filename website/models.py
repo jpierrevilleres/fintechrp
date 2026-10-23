@@ -89,16 +89,20 @@ class Comment(models.Model):
 
 class Like(models.Model):
     """
-    Lightweight Like model to track article likes. Allows anonymous likes (by IP)
-    or authenticated user likes.
+    Lightweight Like model to track article likes. Authenticated users are
+    tracked by user, anonymous visitors by session key.
+
+    ip_address is only set on older rows: behind CloudFront/ALB, REMOTE_ADDR
+    is the load balancer's IP, so every anonymous visitor shared one like.
     """
     article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='likes')
     user = models.ForeignKey('auth.User', on_delete=models.SET_NULL, null=True, blank=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
+    session_key = models.CharField(max_length=40, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = (('article', 'user'), ('article', 'ip_address'))
+        unique_together = (('article', 'user'), ('article', 'ip_address'), ('article', 'session_key'))
 
     def __str__(self):
         return f'Like for {self.article} by {self.user or self.ip_address}'

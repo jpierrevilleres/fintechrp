@@ -124,3 +124,43 @@ class PollTests(TestCase):
 		self.assertContains(resp, 'Will it last?')
 		self.assertContains(resp, 'fr-poll-option')
 		self.assertContains(resp, 'Trade')
+
+
+@override_settings(STORAGES=_PLAIN_STATIC)
+class LikeTests(TestCase):
+	def setUp(self):
+		self.article = Article.objects.create(
+			title='T', slug='t', category='trade', body='<p>Body</p>', is_published=True,
+		)
+		self.url = reverse('toggle_like', kwargs={'slug': 't'})
+
+	def test_anonymous_visitors_like_independently(self):
+		# All requests share REMOTE_ADDR, as they do behind the load balancer
+		first, second = self.client, self.client_class()
+		self.assertTrue(first.post(self.url).json()['liked'])
+		resp = second.post(self.url).json()
+		self.assertTrue(resp['liked'])
+		self.assertEqual(resp['likes_count'], 2)
+
+	def test_second_click_unlikes_and_page_reflects_state(self):
+		self.client.post(self.url)
+		page = self.client.get(reverse('article_detail', kwargs={'slug': 't'}))
+		self.assertTrue(page.context['user_liked'])
+		resp = self.client.post(self.url).json()
+		self.assertFalse(resp['liked'])
+		self.assertEqual(resp['likes_count'], 0)
+
+
+class OctoberPollsMigrationTests(TestCase):
+	def test_adds_poll_once_and_skips_missing_articles(self):
+		import importlib
+		from django.apps import apps
+		migration = importlib.import_module('website.migrations.0009_add_october_article_polls')
+		article = Article.objects.create(
+			title='W', slug='the-wto-more-than-doubled-its-trade-forecast-and-a',
+			category='trade', body='x',
+		)
+		migration.add_polls(apps, None)
+		migration.add_polls(apps, None)
+		self.assertEqual(Poll.objects.count(), 1)
+		self.assertEqual(article.poll.options.count(), 4)

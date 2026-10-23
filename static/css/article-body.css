@@ -15,7 +15,8 @@
 @media (min-width: 768px) {
     .article-content > p {
         text-align: justify;
-        hyphens: auto;
+        /* No auto hyphenation: articles avoid hyphens by style rule */
+        hyphens: manual;
     }
 }
 
