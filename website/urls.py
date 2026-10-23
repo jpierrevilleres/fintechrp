@@ -20,6 +20,7 @@ urlpatterns = [
     path("article/<slug:slug>/", views.article_detail, name="article_detail"),
     path("article/<slug:slug>/comment/", views.submit_comment, name="submit_comment"),
     path("article/<slug:slug>/like/", views.toggle_like, name="toggle_like"),
+    path("article/<slug:slug>/poll/vote/", views.vote_poll, name="vote_poll"),
     
     # policy pages
     path("privacy-policy/", views.policy_page, {"policy_type": "privacy"}, name="privacy_policy"),

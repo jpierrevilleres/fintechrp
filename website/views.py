@@ -4,7 +4,8 @@ from django.contrib import messages
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from django.template.loader import render_to_string
-from .models import ContactMessage, Article, Newsletter, Comment, Like
+from django.db.models import F
+from .models import ContactMessage, Article, Newsletter, Comment, Like, Poll, PollOption
 from .forms import ContactForm, NewsletterForm, CommentForm
 
 
@@ -180,12 +181,18 @@ def article_detail(request, slug):
     except Exception:
         article_url = request.build_absolute_uri()
 
+    poll = Poll.objects.filter(article=article, is_active=True).prefetch_related('options').first()
+    poll_vote = request.session.get('poll_votes', {}).get(str(poll.id)) if poll else None
+
     return render(request, "website/article_detail.html", {
         "article": article,
         "comment_form": comment_form,
         "comments": approved_comments,
         "user_liked": user_liked,
         "article_url": article_url,
+        "poll": poll,
+        "poll_results": poll.results() if poll and poll_vote else None,
+        "poll_vote": poll_vote,
     })
 
 
@@ -245,7 +252,31 @@ def toggle_like(request, slug):
 
     return JsonResponse({'liked': liked, 'likes_count': article.likes.count()})
 
-# ...existing code...
+def vote_poll(request, slug):
+    """Record one vote per visitor session on an article's poll.
+
+    Returns JSON for the in-page script, or redirects back to the poll
+    when JavaScript is off.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    poll = get_object_or_404(Poll, article__slug=slug, article__is_published=True, is_active=True)
+
+    votes = request.session.get('poll_votes', {})
+    voted = votes.get(str(poll.id))
+    if voted is None:
+        try:
+            option = poll.options.get(pk=int(request.POST.get('option', '')))
+        except (ValueError, PollOption.DoesNotExist):
+            return JsonResponse({'error': 'Unknown option'}, status=400)
+        PollOption.objects.filter(pk=option.pk).update(votes=F('votes') + 1)
+        votes[str(poll.id)] = voted = option.pk
+        request.session['poll_votes'] = votes
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'voted': voted, **poll.results()})
+    return redirect(poll.article.get_absolute_url() + '#poll')
+
 
 def policy_page(request, policy_type):
     """

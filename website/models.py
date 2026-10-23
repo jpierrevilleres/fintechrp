@@ -104,6 +104,46 @@ class Like(models.Model):
         return f'Like for {self.article} by {self.user or self.ip_address}'
 
 
+class Poll(models.Model):
+    """Optional reader poll shown at the end of an article."""
+    article = models.OneToOneField(Article, on_delete=models.CASCADE, related_name='poll')
+    question = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=True, help_text="Untick to hide the poll")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.question
+
+    def results(self):
+        options = list(self.options.all())
+        total = sum(o.votes for o in options)
+        return {
+            'total': total,
+            'options': [
+                {
+                    'id': o.id,
+                    'text': o.text,
+                    'votes': o.votes,
+                    'percent': round(o.votes * 100 / total) if total else 0,
+                }
+                for o in options
+            ],
+        }
+
+
+class PollOption(models.Model):
+    poll = models.ForeignKey(Poll, on_delete=models.CASCADE, related_name='options')
+    text = models.CharField(max_length=200)
+    votes = models.PositiveIntegerField(default=0)
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return self.text
+
+
 class Newsletter(models.Model):
     email = models.EmailField(unique=True)
     name = models.CharField(max_length=100, blank=True)

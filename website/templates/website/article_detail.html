@@ -1,5 +1,5 @@
 {% extends "website/base.html" %}
-{% load html_utils %}
+{% load html_utils static %}
 
 {% block title %}{{ article.title }} | FinTechRP{% endblock %}
 
@@ -11,6 +11,10 @@
 {% block og_title %}{{ article.title }}{% endblock %}
 {% block og_description %}{{ article.summary|striptags|truncatewords:30 }}{% endblock %}
 {% block og_image %}{% if article.featured_image %}{{ request.scheme }}://{{ request.get_host }}{{ article.featured_image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% load static %}{% static 'img/finance-banner.jpg' %}{% endif %}{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/article-body.css' %}" rel="stylesheet">
+{% endblock %}
 
 {% block content %}
 <!-- Featured Image Banner -->
@@ -24,10 +28,7 @@
     <p>
         <small>
             {{ article.created_at|date:"Y-m-d" }} •
-            {% if article.category == "finance" %}Finance{% endif %}
-            {% if article.category == "technology" %}Technology{% endif %}
-            {% if article.category == "real_estate" %}Real Estate{% endif %}
-            {% if article.category == "real_estate" %}Trade{% endif %}
+            {{ article.get_category_display }}
         </small>
     </p>
 
@@ -65,8 +66,30 @@
     </div>
 
     <div class="article-content" style="margin-top:2rem; font-size:1.05rem; line-height:1.6;">
-        {{ article.body|lazy_images }}
+        {{ article.body|format_article_body|lazy_images }}
     </div>
+
+    {% if poll %}
+    <section id="poll" class="fr-poll" aria-labelledby="poll-question">
+        <div class="fr-poll-question" id="poll-question"><i class="bi bi-bar-chart-line me-2"></i>{{ poll.question }}</div>
+        {% if poll_results %}
+            {% for o in poll_results.options %}
+            <div class="fr-poll-result{% if o.id == poll_vote %} is-mine{% endif %}">
+                <div class="fr-poll-result-label"><span>{{ o.text }}</span><span>{{ o.percent }}%</span></div>
+                <div class="progress"><div class="progress-bar" style="width: {{ o.percent }}%"></div></div>
+            </div>
+            {% endfor %}
+            <div class="fr-poll-total">{{ poll_results.total }} vote{{ poll_results.total|pluralize }} · thanks for voting</div>
+        {% else %}
+            <form method="post" action="{% url 'vote_poll' slug=article.slug %}">
+                {% csrf_token %}
+                {% for o in poll.options.all %}
+                <button type="submit" name="option" value="{{ o.id }}" class="btn btn-outline-primary fr-poll-option">{{ o.text }}</button>
+                {% endfor %}
+            </form>
+        {% endif %}
+    </section>
+    {% endif %}
 </article>
 
 <p style="margin-top:2rem;">
@@ -124,6 +147,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/article-body.js' %}"></script>
 <script>
     // helper to read CSRF cookie
     function getCookie(name) {

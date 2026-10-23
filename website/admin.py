@@ -1,7 +1,73 @@
+from django import forms
 from django.contrib import admin
-from .models import ContactMessage, Article, Newsletter
+from .models import ContactMessage, Article, Newsletter, Poll, PollOption
 import csv
 from django.http import HttpResponse
+
+
+class PollInlineForm(forms.ModelForm):
+    """Edit a poll's options as one textarea (one option per line) instead
+    of a nested inline, which the Django admin doesn't support."""
+
+    options_text = forms.CharField(
+        label="Options",
+        widget=forms.Textarea(attrs={"rows": 4}),
+        help_text="One option per line, 2 to 6 options. Renaming an option resets its votes.",
+    )
+
+    class Meta:
+        model = Poll
+        fields = ("question", "is_active")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields["options_text"].initial = "\n".join(
+                o.text for o in self.instance.options.all()
+            )
+
+    def clean_options_text(self):
+        lines = [line.strip() for line in self.cleaned_data["options_text"].splitlines()]
+        lines = list(dict.fromkeys(line for line in lines if line))
+        if not 2 <= len(lines) <= 6:
+            raise forms.ValidationError("Enter between 2 and 6 options, one per line.")
+        if any(len(line) > 200 for line in lines):
+            raise forms.ValidationError("Each option must be 200 characters or fewer.")
+        return lines
+
+    def save(self, commit=True):
+        poll = super().save(commit=commit)
+        if commit:
+            self._sync_options(poll)
+        else:
+            original_save_m2m = self.save_m2m
+
+            def save_m2m():
+                original_save_m2m()
+                self._sync_options(poll)
+
+            self.save_m2m = save_m2m
+        return poll
+
+    def _sync_options(self, poll):
+        # Match by text so unchanged options keep their vote counts
+        lines = self.cleaned_data["options_text"]
+        existing = {o.text: o for o in poll.options.all()}
+        for order, text in enumerate(lines):
+            option = existing.pop(text, None) or PollOption(poll=poll, text=text)
+            option.order = order
+            option.save()
+        for leftover in existing.values():
+            leftover.delete()
+
+
+class PollInline(admin.StackedInline):
+    model = Poll
+    form = PollInlineForm
+    extra = 0
+    max_num = 1
+    verbose_name = "Reader poll"
+    verbose_name_plural = "Reader poll (optional, shown at the end of the article)"
 
 
 @admin.register(ContactMessage)
@@ -18,6 +84,7 @@ class ArticleAdmin(admin.ModelAdmin):
     search_fields = ("title", "summary", "body")
     prepopulated_fields = {"slug": ("title",)}  # auto fill slug based on title
     ordering = ("-created_at",)
+    inlines = [PollInline]
 
 
 @admin.register(Newsletter)

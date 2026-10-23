@@ -263,6 +263,10 @@ CKEDITOR_CONFIGS = {
         'toolbar': 'full',
         'height': 300,
         'width': '100%',
+        # Keep the fr-* block classes (static/css/article-body.css) and
+        # <abbr title> jargon tooltips when an article body is pasted in
+        # Source mode - CKEditor's content filter strips them otherwise.
+        'extraAllowedContent': 'div(*); p(*); span(*); blockquote(*); table(*); h2(*); h3(*); abbr[title]',
     },
 }
 
