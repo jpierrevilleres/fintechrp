@@ -93,6 +93,13 @@ and it still reads as a table if scripts are off.
 
 Put one reference per `<p>`, with the link as a clickable `<a href>`.
 
+## Key takeaways
+
+The takeaways are **not** part of the Body either. Fill in the article's
+**Key takeaways** field in the admin with 3 short sentences, one per line (4 at
+most). They appear in a box above the body for readers who skim. Follow the same
+writing rules as the body.
+
 ## Reader poll
 
 The poll is **not** part of the Body. On the article's admin page, scroll to
