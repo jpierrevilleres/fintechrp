@@ -92,8 +92,9 @@ X_FRAME_OPTIONS = 'DENY'
 # does set correctly. 84.74.115.21 (the old nginx-configured IP) was
 # confirmed stale. The home connection is a dynamic residential IP:
 # 213.55.218.85 on 2026-09-15, 213.55.218.42 on 2026-09-27,
-# 213.55.247.123 on 2026-10-23, 213.55.246.244 on 2026-10-24.
-ADMIN_ALLOWED_IPS = env.list('ADMIN_ALLOWED_IPS', default=['127.0.0.1', '213.55.218.85', '213.55.218.42', '213.55.247.123', '213.55.246.244'])
+# 213.55.247.123 on 2026-10-23, 213.55.246.244 on 2026-10-24,
+# 213.55.246.25 on 2026-10-30.
+ADMIN_ALLOWED_IPS = env.list('ADMIN_ALLOWED_IPS', default=['127.0.0.1', '213.55.218.85', '213.55.218.42', '213.55.247.123', '213.55.246.244', '213.55.246.25'])
 # Number of proxies that each append one X-Forwarded-For entry in front of
 # Django: CloudFront -> ALB -> nginx. See AdminIPRestrictionMiddleware.
 ADMIN_PROXY_HOPS = env.int('ADMIN_PROXY_HOPS', default=3)
