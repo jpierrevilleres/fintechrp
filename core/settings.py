@@ -82,23 +82,9 @@ SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 X_FRAME_OPTIONS = 'DENY'
 
 # Admin Security Settings
-# NOTE: nginx's own `allow 84.74.115.21; deny all;` on /control-panel-72d3/
-# is NOT effectively restricting anything in practice - every request
-# arrives at nginx from the ALB's internal IP (which matches the allowed
-# 172.31.0.0/16 range), not the real visitor's IP, so nginx's allow list
-# for that specific IP is never actually consulted - the admin login page
-# has been reachable by anyone on the internet. AdminIPRestrictionMiddleware
-# below reads the real client IP from X-Forwarded-For instead, which ALB
-# does set correctly. 84.74.115.21 (the old nginx-configured IP) was
-# confirmed stale. The home connection is a dynamic residential IP:
-# 213.55.218.85 on 2026-09-15, 213.55.218.42 on 2026-09-27,
-# 213.55.247.123 on 2026-10-23, 213.55.246.244 on 2026-10-24,
-# 213.55.246.25 on 2026-10-30, 213.55.245.14 on 2026-11-07, 213.55.244.255 on 2026-11-12.
-ADMIN_ALLOWED_IPS = env.list('ADMIN_ALLOWED_IPS', default=['127.0.0.1', '213.55.218.85', '213.55.218.42', '213.55.247.123', '213.55.246.244', '213.55.246.25', '213.55.245.14', '213.55.244.255'])
-# Number of proxies that each append one X-Forwarded-For entry in front of
-# Django: CloudFront -> ALB -> nginx. See AdminIPRestrictionMiddleware.
-ADMIN_PROXY_HOPS = env.int('ADMIN_PROXY_HOPS', default=3)
-ADMIN_URL = 'control-panel-72d3/'
+# Admin login requires a one-time code from django-otp (see core/urls.py).
+# The admin is no longer IP-restricted: the home IP is dynamic, and nginx's
+# `allow` list on the admin path never worked behind the ALB anyway.
 # Name shown for the account in the phone's authenticator app.
 OTP_TOTP_ISSUER = 'FintechRP'
 ADMIN_HONEYPOT = False  # Enable admin honeypot protection
@@ -140,9 +126,6 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     # Fix duplicate Host headers from CloudFront/ALB before any other middleware processes them
     'core.middleware.FixDuplicateHostHeaderMiddleware',
-    # Restrict access to admin URL to configured IPs (nginx's own
-    # restriction on this path doesn't work - see ADMIN_ALLOWED_IPS above)
-    'core.middleware.AdminIPRestrictionMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
