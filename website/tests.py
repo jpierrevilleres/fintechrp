@@ -296,19 +296,29 @@ class AdminTwoFactorTests(TestCase):
 		self.user = User.objects.create_superuser('admin', 'a@example.com', 'pw')
 		self.device = TOTPDevice.objects.create(user=self.user, name='Phone')
 
-	def _login(self, token, device=None):
+	def _login(self, token, password='pw'):
 		return self.client.post(self.login_url, {
-			'username': 'admin', 'password': 'pw', 'next': self.index_url,
-			'otp_device': (device or self.device).persistent_id, 'otp_token': token,
+			'username': 'admin', 'password': password, 'next': self.index_url, 'otp_token': token,
 		})
 
-	def test_login_page_asks_for_code(self):
-		self.assertContains(self.client.get(self.login_url), 'name="otp_token"')
+	def _app_code(self):
+		return f'{totp(self.device.bin_key):06d}'
 
-	def test_password_alone_is_refused_and_offers_devices(self):
+	def test_login_page_asks_for_code_without_device_picker(self):
+		resp = self.client.get(self.login_url)
+		self.assertContains(resp, 'name="otp_token"')
+		self.assertNotContains(resp, 'otp_device')
+		self.assertNotContains(resp, 'otp_challenge')
+
+	def test_password_alone_is_refused(self):
 		resp = self.client.post(self.login_url, {'username': 'admin', 'password': 'pw', 'next': self.index_url})
-		self.assertContains(resp, self.device.persistent_id)
+		self.assertEqual(resp.status_code, 200)
+		self.assertNotContains(resp, 'otp_device')
 		self.assertRedirects(self.client.get(self.index_url), f'{self.login_url}?next={self.index_url}')
+
+	def test_wrong_password_with_right_code_is_refused(self):
+		self.assertEqual(self._login(self._app_code(), password='nope').status_code, 200)
+		self.assertNotEqual(self.client.get(self.index_url).status_code, 200)
 
 	def test_wrong_code_is_refused(self):
 		wrong = (totp(self.device.bin_key) + 1) % 1000000
@@ -316,9 +326,13 @@ class AdminTwoFactorTests(TestCase):
 		self.assertNotEqual(self.client.get(self.index_url).status_code, 200)
 
 	def test_app_code_logs_in(self):
-		resp = self._login(f'{totp(self.device.bin_key):06d}')
+		resp = self._login(self._app_code())
 		self.assertRedirects(resp, self.index_url)
 		self.assertEqual(self.client.get(self.index_url).status_code, 200)
+
+	def test_app_code_with_spaces_logs_in(self):
+		code = self._app_code()
+		self.assertRedirects(self._login(f'{code[:3]} {code[3:]}'), self.index_url)
 
 	def test_password_only_session_cannot_use_admin(self):
 		self.client.login(username='admin', password='pw')
@@ -327,6 +341,13 @@ class AdminTwoFactorTests(TestCase):
 	def test_backup_code_works_once(self):
 		backup = StaticDevice.objects.create(user=self.user, name='backup')
 		backup.token_set.create(token='abcd1234')
-		self.assertRedirects(self._login('abcd1234', backup), self.index_url)
+		self.assertRedirects(self._login('ABCD1234'), self.index_url)
 		self.client.logout()
-		self.assertEqual(self._login('abcd1234', backup).status_code, 200)
+		self.assertEqual(self._login('abcd1234').status_code, 200)
+
+	def test_app_logins_do_not_throttle_backup_codes(self):
+		backup = StaticDevice.objects.create(user=self.user, name='backup')
+		backup.token_set.create(token='abcd1234')
+		self.assertRedirects(self._login(self._app_code()), self.index_url)
+		backup.refresh_from_db()
+		self.assertEqual(backup.throttling_failure_count, 0)
