@@ -99,6 +99,8 @@ ADMIN_ALLOWED_IPS = env.list('ADMIN_ALLOWED_IPS', default=['127.0.0.1', '213.55.
 # Django: CloudFront -> ALB -> nginx. See AdminIPRestrictionMiddleware.
 ADMIN_PROXY_HOPS = env.int('ADMIN_PROXY_HOPS', default=3)
 ADMIN_URL = 'control-panel-72d3/'
+# Name shown for the account in the phone's authenticator app.
+OTP_TOTP_ISSUER = 'FintechRP'
 ADMIN_HONEYPOT = False  # Enable admin honeypot protection
 
 # Google Analytics
@@ -123,6 +125,9 @@ INSTALLED_APPS = [
     'ckeditor',
     'ckeditor_uploader',
     'robots',
+    'django_otp',
+    'django_otp.plugins.otp_totp',
+    'django_otp.plugins.otp_static',
 
     # Our apps
     'website',
@@ -142,6 +147,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django_otp.middleware.OTPMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # Tell any well-behaved cache (browser or CDN) never to store these

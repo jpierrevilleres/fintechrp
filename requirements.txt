@@ -19,3 +19,5 @@ django-crispy-forms==2.3
 django-ckeditor==6.7.3
 crispy-bootstrap5==2025.6
 python-slugify==8.0.1
+django-otp==1.7.5
+qrcode==8.2
