@@ -2,7 +2,13 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.sitemaps.views import sitemap
 from django.views.generic import TemplateView
+from django_otp.admin import OTPAdminSite
 from website.sitemaps import ArticleSitemap, StaticSitemap
+
+# Admin login needs a code from a registered authenticator app (TOTP device)
+# or a single-use backup code (static device). Swapping the class keeps the
+# site's "admin" URL namespace and its registered models.
+admin.site.__class__ = OTPAdminSite
 
 sitemaps = {
    'articles': ArticleSitemap,

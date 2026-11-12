@@ -202,8 +202,20 @@ class ArticleExtrasTests(TestCase):
 
 
 from django.contrib.auth.models import User
+from django_otp import DEVICE_ID_SESSION_KEY
+from django_otp.oath import totp
+from django_otp.plugins.otp_static.models import StaticDevice
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from website.article_poll import PollBlockError, parse_poll_block
+
+
+def login_with_otp(client, username='admin', password='pw'):
+	client.login(username=username, password=password)
+	device = TOTPDevice.objects.create(user=User.objects.get(username=username), name='Phone')
+	session = client.session
+	session[DEVICE_ID_SESSION_KEY] = device.persistent_id
+	session.save()
 
 POLL_BLOCK = (
 	'<div class="fr-poll">\n<p>Would your budget survive a higher payment?</p>\n'
@@ -239,7 +251,7 @@ class PollBlockParseTests(TestCase):
 class PollFromBodyAdminTests(TestCase):
 	def setUp(self):
 		User.objects.create_superuser('admin', 'a@example.com', 'pw')
-		self.client.login(username='admin', password='pw')
+		login_with_otp(self.client)
 
 	def _post(self, url, body):
 		return self.client.post(url, {
@@ -273,3 +285,48 @@ class PollFromBodyAdminTests(TestCase):
 		self.assertContains(resp, 'Reader poll not updated')
 		self.assertTrue(Article.objects.filter(slug='rates').exists())
 		self.assertFalse(Poll.objects.exists())
+
+
+@override_settings(STORAGES=_PLAIN_STATIC)
+class AdminTwoFactorTests(TestCase):
+	login_url = '/control-panel-72d3/login/'
+	index_url = '/control-panel-72d3/'
+
+	def setUp(self):
+		self.user = User.objects.create_superuser('admin', 'a@example.com', 'pw')
+		self.device = TOTPDevice.objects.create(user=self.user, name='Phone')
+
+	def _login(self, token, device=None):
+		return self.client.post(self.login_url, {
+			'username': 'admin', 'password': 'pw', 'next': self.index_url,
+			'otp_device': (device or self.device).persistent_id, 'otp_token': token,
+		})
+
+	def test_login_page_asks_for_code(self):
+		self.assertContains(self.client.get(self.login_url), 'name="otp_token"')
+
+	def test_password_alone_is_refused_and_offers_devices(self):
+		resp = self.client.post(self.login_url, {'username': 'admin', 'password': 'pw', 'next': self.index_url})
+		self.assertContains(resp, self.device.persistent_id)
+		self.assertRedirects(self.client.get(self.index_url), f'{self.login_url}?next={self.index_url}')
+
+	def test_wrong_code_is_refused(self):
+		wrong = (totp(self.device.bin_key) + 1) % 1000000
+		self.assertEqual(self._login(f'{wrong:06d}').status_code, 200)
+		self.assertNotEqual(self.client.get(self.index_url).status_code, 200)
+
+	def test_app_code_logs_in(self):
+		resp = self._login(f'{totp(self.device.bin_key):06d}')
+		self.assertRedirects(resp, self.index_url)
+		self.assertEqual(self.client.get(self.index_url).status_code, 200)
+
+	def test_password_only_session_cannot_use_admin(self):
+		self.client.login(username='admin', password='pw')
+		self.assertEqual(self.client.get('/control-panel-72d3/website/article/').status_code, 302)
+
+	def test_backup_code_works_once(self):
+		backup = StaticDevice.objects.create(user=self.user, name='backup')
+		backup.token_set.create(token='abcd1234')
+		self.assertRedirects(self._login('abcd1234', backup), self.index_url)
+		self.client.logout()
+		self.assertEqual(self._login('abcd1234', backup).status_code, 200)
